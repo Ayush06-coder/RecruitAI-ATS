@@ -9,7 +9,8 @@ from parser import (
 from extractor import (
     extract_email,
     extract_phone,
-    extract_name
+    extract_name,
+    extract_skills
 )
 
 st.title("AI Resume Parser")
@@ -50,14 +51,15 @@ if uploaded_file is not None:
     email = extract_email(resume_text)
     phone = extract_phone(resume_text)
     name = extract_name(resume_text)
-
+    skills = extract_skills(resume_text)
     # Display extracted information
     st.subheader("Extracted Information")
 
     st.write("Email:", email)
     st.write("Phone:", phone)
     st.write("Name:", name)
-
+    st.write("Skills:", ", ".join(skills))
+    
     # Display extracted text
     st.subheader("Extracted Resume Text")
 

@@ -58,3 +58,27 @@ def extract_name(text):
             return ent.text
 
     return "Name not found"
+
+SKILLS_LIST = [
+    "Python", "Java", "C", "C++", "C#", "JavaScript", "TypeScript",
+    "R", "Swift", "Kotlin", "Go", "Rust", "PHP", "Ruby", "Scala",
+    "HTML", "CSS", "React", "Angular", "Vue", "Node.js", "Django",
+    "Flask", "FastAPI", "REST API", "GraphQL",
+    "Machine Learning", "Deep Learning", "NLP", "Computer Vision",
+    "TensorFlow", "PyTorch", "Keras", "Scikit-learn", "Pandas",
+    "NumPy", "Matplotlib", "Seaborn",
+    "SQL", "MySQL", "PostgreSQL", "MongoDB", "SQLite", "Redis",
+    "Git", "GitHub", "Docker", "Kubernetes", "AWS", "Azure", "GCP",
+    "Linux", "Streamlit", "Power BI", "Tableau", "Excel",
+    "Data Structures", "Algorithms", "OOP", "System Design",
+]
+
+def extract_skills(text):
+    text_lower = text.lower()
+    found_skills = []
+
+    for skill in SKILLS_LIST:
+        if skill.lower() in text_lower:
+            found_skills.append(skill)
+
+    return found_skills if found_skills else ["No skills found"]
