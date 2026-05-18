@@ -6,6 +6,12 @@ from parser import (
     extract_text_from_docx
 )
 
+from extractor import (
+    extract_email,
+    extract_phone,
+    extract_name
+)
+
 st.title("AI Resume Parser")
 
 st.write("Upload a resume to begin parsing.")
@@ -39,6 +45,18 @@ if uploaded_file is not None:
     elif uploaded_file.name.endswith(".docx"):
 
         resume_text = extract_text_from_docx(file_path)
+    
+    # Extract information
+    email = extract_email(resume_text)
+    phone = extract_phone(resume_text)
+    name = extract_name(resume_text)
+
+    # Display extracted information
+    st.subheader("Extracted Information")
+
+    st.write("Email:", email)
+    st.write("Phone:", phone)
+    st.write("Name:", name)
 
     # Display extracted text
     st.subheader("Extracted Resume Text")
