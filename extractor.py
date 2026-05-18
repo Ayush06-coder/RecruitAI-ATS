@@ -26,33 +26,35 @@ def extract_phone(text):
     return "Phone number not found"
 
 def extract_name(text):
-    lines = text.split("\n")
-    cleaned_lines = [line.strip() for line in lines if line.strip()]
+    lines = [line.strip() for line in text.split("\n") if line.strip()]
 
     headings = {
-        "Resume", "Cv", "Curriculum", "Vitae", "Profile", "Portfolio",
-        "Summary", "Education", "Experience", "Skills", "Objective",
-        "Contact", "References"
+        "Resume", "Cv", "Curriculum", "Vitae", "Profile",
+        "Summary", "Education", "Experience", "Skills",
+        "Objective", "Contact", "References"
     }
 
-    # Handle name split across lines: AYUSH \n SAWHNEY
-    for i in range(len(cleaned_lines[:10]) - 1):
-        w1 = cleaned_lines[i].strip()
-        w2 = cleaned_lines[i+1].strip()
-        if (len(w1.split()) == 1 and len(w2.split()) == 1
-                and w1.isupper() and w2.isupper()
-                and w1.title() not in headings
-                and w2.title() not in headings):
-            return (w1 + " " + w2).title()
+    for i in range(len(lines[:10]) - 1):
+        w1, w2 = lines[i], lines[i + 1]
 
-    # NLP for everything else
-    normalized = []
-    for line in cleaned_lines[:10]:
-        normalized.append(line.title() if line.isupper() else line)
+        if (
+            w1.isupper() and w2.isupper()
+            and len(w1.split()) == 1
+            and len(w2.split()) == 1
+            and w1.title() not in headings
+            and w2.title() not in headings
+        ):
+            return f"{w1} {w2}".title()
 
-    doc = nlp(" ".join(normalized))
-    for entity in doc.ents:
-        if entity.label_ == "PERSON" and len(entity.text.split()) >= 2:
-            return entity.text
+    text_for_nlp = " ".join(
+        line.title() if line.isupper() else line
+        for line in lines[:10]
+    )
+
+    doc = nlp(text_for_nlp)
+
+    for ent in doc.ents:
+        if ent.label_ == "PERSON" and len(ent.text.split()) >= 2:
+            return ent.text
 
     return "Name not found"
