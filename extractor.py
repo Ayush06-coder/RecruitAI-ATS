@@ -125,3 +125,51 @@ def extract_education(text):
     ]
     
     return found_education if found_education else ["Education not found"]
+
+ROLE_KEYWORDS = [
+    "intern", "internship", "engineer", "developer", "analyst",
+    "manager", "consultant", "designer", "architect", "lead",
+    "executive", "associate", "trainee", "assistant", "scientist"
+]
+
+COMPANY_KEYWORDS = [
+    "technologies", "solutions", "systems", "services", "consulting",
+    "software", "tech", "labs", "pvt", "ltd", "inc", "limited",
+    "corp", "group", "studio"
+]
+
+def extract_experience(text):
+    lines = [line.strip() for line in text.split("\n") if line.strip()]
+    
+    section_keywords = ["experience", "employment", "work history", "internship"]
+    stop_keywords = ["education", "skills", "projects", "certifications", 
+                     "achievements", "objective", "summary"]
+    
+    experience_lines = []
+    in_experience_section = False
+    
+    for line in lines:
+        line_lower = line.lower()
+        
+        if any(kw in line_lower for kw in section_keywords):
+            in_experience_section = True
+            continue
+        
+        if in_experience_section and any(kw in line_lower for kw in stop_keywords):
+            break
+        
+        if in_experience_section:
+            experience_lines.append(line)
+    
+    roles = []
+    companies = []
+    
+    for line in experience_lines:
+        line_lower = line.lower()
+        if any(kw in line_lower for kw in ROLE_KEYWORDS) and line not in roles:
+            roles.append(line)
+        elif any(kw in line_lower for kw in COMPANY_KEYWORDS) and line not in companies:
+            companies.append(line)
+    
+    result = roles + companies
+    return result if result else ["Experience not found"]
