@@ -82,3 +82,46 @@ def extract_skills(text):
             found_skills.append(skill)
 
     return found_skills if found_skills else ["No skills found"]
+
+EDUCATION_KEYWORDS = [
+    "b.tech", "m.tech", "btech", "mtech", "b.e", "m.e",
+    "b.sc", "m.sc", "bsc", "msc", "bca", "mca", "bba", "mba",
+    "bachelor", "master", "phd", "doctorate", "diploma",
+    "b.com", "m.com", "b.a", "m.a"
+]
+
+UNIVERSITY_KEYWORDS = [
+    "university", "college", "institute", "iit", "nit",
+    "bits", "amity", "vit", "manipal", "school of"
+]
+
+def extract_education(text):
+    lines = [line.strip() for line in text.split("\n") if line.strip()]
+    
+    section_keywords = ["education", "qualification", "academic"]
+    stop_keywords = ["experience", "skills", "projects", 
+                     "certifications", "summary", "objective"]
+    keywords = EDUCATION_KEYWORDS + UNIVERSITY_KEYWORDS
+    
+    education_lines = []
+    in_education_section = False
+    
+    for line in lines:
+        line_lower = line.lower()
+        
+        if any(kw in line_lower for kw in section_keywords):
+            in_education_section = True
+            continue
+        
+        if in_education_section and any(kw in line_lower for kw in stop_keywords):
+            break
+        
+        if in_education_section:
+            education_lines.append(line)
+    
+    found_education = [
+        line for line in education_lines
+        if any(kw in line.lower() for kw in keywords)
+    ]
+    
+    return found_education if found_education else ["Education not found"]
