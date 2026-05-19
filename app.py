@@ -14,6 +14,11 @@ from extractor import (
     extract_education,
     extract_experience
 )
+
+from database import init_db, save_candidate, get_all_candidates
+
+init_db()
+
 st.title("AI Resume Parser")
 
 st.write("Upload a resume to begin parsing.")
@@ -55,6 +60,10 @@ if uploaded_file is not None:
     skills = extract_skills(resume_text)
     education = extract_education(resume_text)
     experience = extract_experience(resume_text)
+
+    save_candidate(name, email, phone, skills, education, experience)
+    st.success("Candidate saved to database!")
+
     
     # Display extracted information
     st.subheader("Extracted Information")
@@ -66,6 +75,18 @@ if uploaded_file is not None:
     st.write("Education:", ", ".join(education))
     st.write("Experience:", ", ".join(experience))
     
+    st.subheader("All Candidates")
+    candidates = get_all_candidates()
+
+    for candidate in candidates:
+        st.write("---")
+        st.write("Name:", candidate[1])
+        st.write("Email:", candidate[2])
+        st.write("Phone:", candidate[3])
+        st.write("Skills:", candidate[4])
+        st.write("Education:", candidate[5])
+        st.write("Experience:", candidate[6])
+
     # Display extracted text
     st.subheader("Extracted Resume Text")
 
