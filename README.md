@@ -76,6 +76,22 @@ streamlit run app.py
 - Deployment
 - OCR Support
 
+## Screenshots
+
+### Home Page
+![Home Page](Screenshots/homepage.png)
+
+### Candidate Information
+![Candidate Info](Screenshots/candidate-info.png)
+
+### JD Matching
+![JD Matching 1](Screenshots/jd-matching-1.png)
+
+![JD Matching 2](Screenshots/jd-matching-2.png)
+
+### Candidate Rankings
+![Candidate Rankings](Screenshots/candidate-ranking.png)
+
 ---
 
 ## Author
