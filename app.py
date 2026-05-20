@@ -12,14 +12,15 @@ from extractor import (
     extract_name,
     extract_skills,
     extract_education,
-    extract_experience
+    extract_experience,
+    match_candidate
 )
 
 from database import init_db, save_candidate, get_all_candidates
 
 init_db()
 
-st.title("AI Resume Parser")
+st.title("Intelligent Resume Parser using NLP")
 
 st.write("Upload a resume to begin parsing.")
 
@@ -61,9 +62,11 @@ if uploaded_file is not None:
     education = extract_education(resume_text)
     experience = extract_experience(resume_text)
 
-    save_candidate(name, email, phone, skills, education, experience)
-    st.success("Candidate saved to database!")
-
+    saved = save_candidate(name, email, phone, skills, education, experience)
+    if saved:
+        st.success("Candidate saved to database!")
+    else:
+        st.warning("Candidate already exists in database!")
     
     # Display extracted information
     st.subheader("Extracted Information")
@@ -74,6 +77,15 @@ if uploaded_file is not None:
     st.write("Skills:", ", ".join(skills))
     st.write("Education:", ", ".join(education))
     st.write("Experience:", ", ".join(experience))
+
+     # Display extracted text
+    st.subheader("Extracted Resume Text")
+
+    st.text_area(
+        "Resume Content",
+        resume_text,
+        height=400
+    )
     
     st.subheader("All Candidates")
     candidates = get_all_candidates()
@@ -87,11 +99,19 @@ if uploaded_file is not None:
         st.write("Education:", candidate[5])
         st.write("Experience:", candidate[6])
 
-    # Display extracted text
-    st.subheader("Extracted Resume Text")
+st.subheader("Job Description Matching")
 
-    st.text_area(
-        "Resume Content",
-        resume_text,
-        height=400
-    )
+jd_text = st.text_area("Paste Job Description here", height=200)
+
+if jd_text:
+    st.subheader("Candidate Match Results")
+    candidates = get_all_candidates()
+
+    for candidate in candidates:
+        result = match_candidate(candidate[4], jd_text)
+
+        st.write("---")
+        st.write("**Name:**", candidate[1])
+        st.write("**Match Score:**", f"{result['score']}%")
+        st.write("**Matched Skills:**", ", ".join(result['matched']))
+        st.write("**Missing Skills:**", ", ".join(result['missing']))

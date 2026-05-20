@@ -25,6 +25,14 @@ def save_candidate(name, email, phone, skills, education, experience):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
+    # Check if candidate with same email already exists
+    cursor.execute("SELECT id FROM candidates WHERE email = ?", (email,))
+    existing = cursor.fetchone()
+
+    if existing:
+        conn.close()
+        return False   
+
     cursor.execute("""
         INSERT INTO candidates (name, email, phone, skills, education, experience)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -39,6 +47,7 @@ def save_candidate(name, email, phone, skills, education, experience):
 
     conn.commit()
     conn.close()
+    return True  
 
 def get_all_candidates():
     conn = sqlite3.connect(DB_PATH)

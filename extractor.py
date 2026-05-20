@@ -173,3 +173,20 @@ def extract_experience(text):
     
     result = roles + companies
     return result if result else ["Experience not found"]
+
+def match_candidate(candidate_skills, jd_text):
+    jd_skills = extract_skills(jd_text)
+    candidate_skills_list = [s.strip().lower() for s in candidate_skills.split(",")]
+    jd_skills_lower = [s.lower() for s in jd_skills]
+
+    matched = [skill for skill in jd_skills_lower if skill in candidate_skills_list]
+    missing = [skill for skill in jd_skills_lower if skill not in candidate_skills_list]
+
+    total = len(jd_skills_lower)
+    score = round((len(matched) / total) * 100) if total > 0 else 0
+
+    return {
+        "score": score,
+        "matched": matched,
+        "missing": missing
+    }
