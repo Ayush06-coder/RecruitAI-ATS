@@ -176,7 +176,11 @@ def extract_experience(text):
 
 def match_candidate(candidate_skills, jd_text):
     jd_skills = extract_skills(jd_text)
-    candidate_skills_list = [s.strip().lower() for s in candidate_skills.split(",")]
+    candidate_skills_list = [
+    s.strip().lower()
+    for s in candidate_skills.split(",")
+    if s.strip()
+    ]
     jd_skills_lower = [s.lower() for s in jd_skills]
 
     matched = [skill for skill in jd_skills_lower if skill in candidate_skills_list]

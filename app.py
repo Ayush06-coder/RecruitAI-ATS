@@ -104,10 +104,13 @@ st.subheader("Job Description Matching")
 jd_text = st.text_area("Paste Job Description here", height=200)
 
 if jd_text:
+
     st.subheader("Candidate Match Results")
+
     candidates = get_all_candidates()
 
     for candidate in candidates:
+
         result = match_candidate(candidate[4], jd_text)
 
         st.write("---")
@@ -115,3 +118,33 @@ if jd_text:
         st.write("**Match Score:**", f"{result['score']}%")
         st.write("**Matched Skills:**", ", ".join(result['matched']))
         st.write("**Missing Skills:**", ", ".join(result['missing']))
+
+    # Ranking Section
+    st.subheader("Candidate Rankings")
+
+    ranked_candidates = []
+
+    for candidate in candidates:
+        candidate_name = candidate[1]
+
+        result = match_candidate(
+            candidate[4],
+            jd_text
+        )
+
+        score = result["score"]
+
+        ranked_candidates.append(
+            (candidate_name, score)
+        )
+
+    ranked_candidates.sort(
+        key=lambda x: x[1],
+        reverse=True
+    )
+
+    for index, candidate in enumerate(ranked_candidates, start=1):
+
+        st.write(
+            f"{index}. {candidate[0]} - {candidate[1]}%"
+        )
