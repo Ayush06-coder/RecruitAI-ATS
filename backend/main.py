@@ -26,7 +26,8 @@ from extractor import (
 from database import (
     init_db,
     save_candidate,
-    get_all_candidates
+    get_all_candidates,
+    search_candidates
 )
 
 # ---------------- APP SETUP ----------------
@@ -95,10 +96,13 @@ async def upload_resume(file: UploadFile = File(...)):
 
 
 @app.get("/candidates")
-def get_candidates():
-    candidates = get_all_candidates()
-    result = []
+def get_candidates(search: str = ""):
+    if search:
+        candidates = search_candidates(search)
+    else:
+        candidates = get_all_candidates()
 
+    result = []
     for c in candidates:
         result.append({
             "id": c[0],

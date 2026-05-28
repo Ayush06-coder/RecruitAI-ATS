@@ -34,6 +34,14 @@ def extract_name(text):
         "Objective", "Contact", "References"
     }
 
+    job_titles = {
+        "junior", "senior", "developer", "engineer", "analyst",
+        "manager", "designer", "lead", "frontend", "backend",
+        "fullstack", "full-stack", "intern", "consultant",
+        "architect", "executive", "associate", "trainee",
+        "assistant", "scientist", "officer", "head"
+    }
+
     for i in range(len(lines[:10]) - 1):
         w1, w2 = lines[i], lines[i + 1]
 
@@ -54,8 +62,20 @@ def extract_name(text):
     doc = nlp(text_for_nlp)
 
     for ent in doc.ents:
-        if ent.label_ == "PERSON" and len(ent.text.split()) >= 2:
-            return ent.text
+        if ent.label_ == "PERSON":
+
+            words = ent.text.split()
+
+            # Stop at job title words
+            clean_words = []
+            for word in words:
+                if word.lower() in job_titles:
+                    break
+                clean_words.append(word)
+
+            # Only return if at least 2 clean words remain
+            if len(clean_words) >= 2:
+                return " ".join(clean_words)
 
     return "Name not found"
 

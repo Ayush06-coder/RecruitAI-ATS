@@ -58,3 +58,18 @@ def get_all_candidates():
 
     conn.close()
     return candidates
+
+def search_candidates(query):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT * FROM candidates
+        WHERE name LIKE ?
+        OR email LIKE ?
+        OR skills LIKE ?
+    """, (f"%{query}%", f"%{query}%", f"%{query}%"))
+
+    candidates = cursor.fetchall()
+    conn.close()
+    return candidates
