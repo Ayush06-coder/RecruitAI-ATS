@@ -74,13 +74,11 @@ SKILLS_LIST = [
 ]
 
 def extract_skills(text):
-    text_lower = text.lower()
     found_skills = []
-
     for skill in SKILLS_LIST:
-        if skill.lower() in text_lower:
+        pattern = r'\b' + re.escape(skill) + r'\b'
+        if re.search(pattern, text, re.IGNORECASE):
             found_skills.append(skill)
-
     return found_skills if found_skills else ["No skills found"]
 
 EDUCATION_KEYWORDS = [
@@ -176,11 +174,7 @@ def extract_experience(text):
 
 def match_candidate(candidate_skills, jd_text):
     jd_skills = extract_skills(jd_text)
-    candidate_skills_list = [
-    s.strip().lower()
-    for s in candidate_skills.split(",")
-    if s.strip()
-    ]
+    candidate_skills_list = [s.strip().lower() for s in candidate_skills.split(",") if s.strip()]
     jd_skills_lower = [s.lower() for s in jd_skills]
 
     matched = [skill for skill in jd_skills_lower if skill in candidate_skills_list]
@@ -189,8 +183,4 @@ def match_candidate(candidate_skills, jd_text):
     total = len(jd_skills_lower)
     score = round((len(matched) / total) * 100) if total > 0 else 0
 
-    return {
-        "score": score,
-        "matched": matched,
-        "missing": missing
-    }
+    return {"score": score, "matched": matched, "missing": missing}
