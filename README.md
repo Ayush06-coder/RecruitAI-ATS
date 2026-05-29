@@ -2,6 +2,8 @@
 
 > An AI-powered recruitment tool that automatically parses resumes, extracts candidate information using NLP, and ranks candidates against job descriptions.
 
+---
+
 ## 🧠 What This Project Does
 
 Companies receive hundreds of resumes for a single job opening. Going through each one manually is slow, inconsistent, and hard to scale. This system solves that problem by:
@@ -10,6 +12,8 @@ Companies receive hundreds of resumes for a single job opening. Going through ea
 - Extracting all key candidate information using NLP
 - Storing candidates in a searchable database
 - Matching and ranking candidates against any job description
+
+---
 
 ## ✨ Features
 
@@ -24,51 +28,61 @@ Companies receive hundreds of resumes for a single job opening. Going through ea
 | 🌐 REST API | Full FastAPI backend with auto-generated documentation |
 | 📱 Multi-Page UI | Clean Streamlit frontend with page-based navigation |
 
+---
+
 ## 🛠️ Tech Stack
 
-Frontend   →  Streamlit (Multi-page)
-Backend    →  FastAPI + Uvicorn
-NLP        →  spaCy + Regex
-Database   →  SQLite
-Language   →  Python
+| Layer | Technology |
+|---|---|
+| Frontend | Streamlit (Multi-page) |
+| Backend | FastAPI + Uvicorn |
+| NLP | spaCy (en_core_web_lg) + Regex |
+| Database | SQLite |
+| Language | Python 3.10+ |
+
+---
 
 ## 📁 Project Structure
 
-resume-parser-project/
-│
-├── App.py                       ← Home page (entry point)
-│
-├── pages/
-│   ├── 1_Upload.py              ← Upload & parse resumes
-│   ├── 2_Candidates.py          ← Search & view all candidates
-│   └── 3_JD_Matching.py         ← Match & rank candidates
-│
-├── backend/
-│   ├── main.py                  ← FastAPI REST API endpoints
-│   ├── parser.py                ← PDF/DOCX text extraction
-│   ├── extractor.py             ← NLP extraction functions
-│   └── database.py              ← SQLite database operations
-│
-├── database/
-│   └── resumes.db               ← SQLite database file
-│
-├── resumes/                     ← Uploaded resume files
-├── Screenshots/                 ← Project screenshots
-└── requirements.txt
+| Path | Description |
+|---|---|
+| `App.py` | Home page — entry point |
+| `pages/1_Upload.py` | Upload and parse resumes |
+| `pages/2_Candidates.py` | Search and view all candidates |
+| `pages/3_JD_Matching.py` | Match and rank candidates |
+| `backend/main.py` | FastAPI REST API endpoints |
+| `backend/parser.py` | PDF/DOCX text extraction |
+| `backend/extractor.py` | NLP extraction functions |
+| `backend/database.py` | SQLite database operations |
+| `database/resumes.db` | SQLite database file |
+| `resumes/` | Uploaded resume files |
+| `Screenshots/` | Project screenshots |
+| `requirements.txt` | Python dependencies |
+
+---
 
 ## ▶️ Running the Project
-This project has two components that run simultaneously. Open two separate terminals:
 
-Terminal 1 — FastAPI Backend:
+Open **two separate terminals:**
+
+**Terminal 1 — FastAPI Backend:**
+
+```
 uvicorn backend.main:app --reload --port 8000
+```
 
-Terminal 2 — Streamlit Frontend:
+**Terminal 2 — Streamlit Frontend:**
+
+```
 streamlit run App.py
+```
 
-Then open in your browser:
-Service	      URL
-Streamlit App	http://localhost:8501
-FastAPI Docs	http://localhost:8000/docs
+| Service | URL |
+|---|---|
+| Streamlit App | http://localhost:8501 |
+| FastAPI Docs | http://localhost:8000/docs |
+
+---
 
 ## 🔌 API Endpoints
 
@@ -80,6 +94,8 @@ FastAPI Docs	http://localhost:8000/docs
 | `GET` | `/candidates?search=python` | Search candidates by name, email or skill |
 | `GET` | `/candidate/{id}` | Fetch one specific candidate by ID |
 | `POST` | `/match` | Match all candidates against a job description |
+
+---
 
 ## 📸 Screenshots
 
@@ -98,43 +114,43 @@ FastAPI Docs	http://localhost:8000/docs
 ### 🏆 Candidate Rankings
 ![Candidate Ranking](Screenshots/Candidate_Ranking.png)
 
+---
+
 ## 🔍 How It Works
 
-User uploads resume (PDF/DOCX)
-          ↓
-FastAPI receives file via /upload endpoint
-          ↓
-parser.py extracts raw text from file
-          ↓
-extractor.py runs NLP on raw text:
-  → Name       — spaCy NLP + rule-based detection
-  → Email      — Regex pattern matching
-  → Phone      — Regex pattern matching
-  → Skills     — Keyword matching (whole word regex)
-  → Education  — Section-based NLP parsing
-  → Experience — Section-based NLP parsing
-          ↓
-database.py saves candidate to SQLite
-          ↓
-Streamlit displays extracted information
-          ↓
-Recruiter pastes Job Description
-          ↓
-/match endpoint compares candidate skills vs JD skills
-          ↓
-Candidates ranked by match score (highest first)
+1. User uploads resume in PDF or DOCX format
+2. FastAPI receives the file via the `/upload` endpoint
+3. `parser.py` extracts raw text from the file
+4. `extractor.py` runs NLP processing:
+   - **Name** — spaCy NLP + rule-based detection
+   - **Email** — Regex pattern matching
+   - **Phone** — Regex pattern matching
+   - **Skills** — Keyword matching with whole word regex
+   - **Education** — Section-based NLP parsing
+   - **Experience** — Section-based NLP parsing
+5. `database.py` saves the candidate to SQLite
+6. Streamlit displays the extracted information
+7. Recruiter pastes a Job Description
+8. `/match` endpoint compares candidate skills vs JD skills
+9. Candidates are ranked by match score, highest first
+
+---
 
 ## 📦 Dependencies
 
-streamlit
-fastapi
-uvicorn
-python-multipart
-pdfplumber
-python-docx
-spacy
-requests
-pandas
+| Package | Purpose |
+|---|---|
+| `streamlit` | Frontend UI |
+| `fastapi` | REST API backend |
+| `uvicorn` | ASGI web server |
+| `python-multipart` | File upload handling |
+| `pdfplumber` | PDF text extraction |
+| `python-docx` | DOCX text extraction |
+| `spacy` | NLP processing |
+| `requests` | HTTP calls from frontend to backend |
+| `pandas` | Data display in tables |
+
+---
 
 ## 🌿 Git Branches
 
@@ -142,6 +158,8 @@ pandas
 |---|---|
 | `main` | Stable production branch |
 | `fastapi-backend` | FastAPI + multi-page routing (merged into main) |
+
+---
 
 ## 🚀 Future Scope
 
@@ -151,16 +169,21 @@ pandas
 - [ ] Resume vs Resume comparison
 - [ ] Email notifications for top candidates
 
+---
+
 ## 👨‍💻 Author
 
 **Ayush Sawhney**
-B.Tech Computer Science Engineering
-Amity University, Noida
+B.Tech Computer Science Engineering — Amity University, Noida
 
-[![GitHub] (https://github.com/Ayush06-coder)]
+GitHub : https://github.com/Ayush06-coder
+
+---
 
 ## 📌 Project Status
 
 > 🟢 **Active Development** — Internship Project at Team Computers
+
+---
 
 *Built with Python · FastAPI · Streamlit · spaCy · SQLite*
