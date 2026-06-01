@@ -2,6 +2,17 @@ import streamlit as st
 import requests
 import pandas as pd
 
+from auth import is_logged_in, logout
+
+if not is_logged_in():
+    st.warning("Please login first.")
+    st.stop()
+
+with st.sidebar:
+    st.markdown(f"👤 Logged in as **{st.session_state['username']}**")
+    if st.button("Logout"):
+        logout()
+
 st.set_page_config(
     page_title="Candidates",
     page_icon="👥",

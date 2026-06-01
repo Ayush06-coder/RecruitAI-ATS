@@ -1,4 +1,5 @@
 import streamlit as st
+from auth import login_page, logout, is_logged_in
 
 st.set_page_config(
     page_title="Intelligent Resume Parser",
@@ -6,6 +7,17 @@ st.set_page_config(
     layout="wide"
 )
 
+if not is_logged_in():
+    login_page()
+    st.stop()
+
+# ---------------- SIDEBAR LOGOUT ----------------
+with st.sidebar:
+    st.markdown(f"👤 Logged in as **{st.session_state['username']}**")
+    if st.button("Logout"):
+        logout()
+
+# ---------------- HOME PAGE ----------------
 st.title("📄 Intelligent Resume Parser using NLP")
 
 st.markdown("""
