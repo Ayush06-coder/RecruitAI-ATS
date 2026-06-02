@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 import pandas as pd
 from collections import Counter
-from auth import is_logged_in, logout
+from auth import enforce_access, render_sidebar
 
 st.set_page_config(
     page_title="Analytics",
@@ -10,14 +10,8 @@ st.set_page_config(
     layout="wide"
 )
 
-if not is_logged_in():
-    st.warning("Please login first.")
-    st.stop()
-
-with st.sidebar:
-    st.markdown(f"👤 Logged in as **{st.session_state['username']}**")
-    if st.button("Logout"):
-        logout()
+enforce_access()
+render_sidebar()
 
 API_URL = "http://localhost:8000"
 

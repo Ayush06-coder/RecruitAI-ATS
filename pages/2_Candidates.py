@@ -2,22 +2,16 @@ import streamlit as st
 import requests
 import pandas as pd
 
-from auth import is_logged_in, logout
-
-if not is_logged_in():
-    st.warning("Please login first.")
-    st.stop()
-
-with st.sidebar:
-    st.markdown(f"👤 Logged in as **{st.session_state['username']}**")
-    if st.button("Logout"):
-        logout()
+from auth import enforce_access, render_sidebar, is_admin
 
 st.set_page_config(
     page_title="Candidates",
     page_icon="👥",
     layout="wide"
 )
+
+enforce_access()
+render_sidebar()
 
 API_URL = "http://localhost:8000"
 
@@ -81,12 +75,16 @@ if response.status_code == 200:
 
         candidate_data = []
         for c in candidates:
-            candidate_data.append({
+            row = {
                 "Name": c["name"],
                 "Email": c["email"],
-                "Phone": c["phone"],
                 "Skills": c["skills"],
                 "Education": c["education"]
+            }
+            if is_admin():
+                row["Phone"] = c["phone"]
+            candidate_data.append({
+                **row
             })
 
         df = pd.DataFrame(candidate_data)
@@ -105,12 +103,27 @@ if response.status_code == 200:
                 with col1:
                     st.markdown(f"**Name:** {c['name']}")
                     st.markdown(f"**Email:** {c['email']}")
-                    st.markdown(f"**Phone:** {c['phone']}")
+                    if is_admin():
+                        st.markdown(f"**Phone:** {c['phone']}")
+                    else:
+                        st.markdown("**Phone:** Hidden for user role")
 
                 with col2:
                     st.markdown(f"**Skills:** {c['skills']}")
                     st.markdown(f"**Education:** {c['education']}")
-                    st.markdown(f"**Experience:** {c['experience']}")
+                    if is_admin():
+                        st.markdown(f"**Experience:** {c['experience']}")
+                    else:
+                        st.markdown("**Experience:** Limited for user role")
+
+                if is_admin():
+                    if st.button(f"🗑️ Delete Candidate", key=f"delete_{c['id']}"):
+                        delete_response = requests.delete(f"{API_URL}/candidate/{c['id']}")
+                        if delete_response.status_code == 200 and delete_response.json().get("deleted"):
+                            st.success("Candidate deleted.")
+                            st.rerun()
+                        else:
+                            st.error("Could not delete candidate.")
 
 else:
     st.error("Could not connect to backend. Make sure FastAPI is running.")

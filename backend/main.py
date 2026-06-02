@@ -27,7 +27,8 @@ from database import (
     init_db,
     save_candidate,
     get_all_candidates,
-    search_candidates
+    search_candidates,
+    delete_candidate,
 )
 
 # ---------------- APP SETUP ----------------
@@ -153,3 +154,11 @@ def match_candidates(request: JDRequest):
 
     results = sorted(results, key=lambda x: x["score"], reverse=True)
     return {"results": results}
+
+
+@app.delete("/candidate/{candidate_id}")
+def delete_candidate_by_id(candidate_id: int):
+    deleted = delete_candidate(candidate_id)
+    if not deleted:
+        return {"deleted": False, "message": "Candidate not found"}
+    return {"deleted": True}

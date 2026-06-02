@@ -1,5 +1,5 @@
 import streamlit as st
-from auth import login_page, logout, is_logged_in
+from auth import login_page, is_logged_in, render_sidebar, must_change_password
 
 st.set_page_config(
     page_title="Intelligent Resume Parser",
@@ -11,11 +11,12 @@ if not is_logged_in():
     login_page()
     st.stop()
 
-# ---------------- SIDEBAR LOGOUT ----------------
-with st.sidebar:
-    st.markdown(f"👤 Logged in as **{st.session_state['username']}**")
-    if st.button("Logout"):
-        logout()
+render_sidebar()
+
+if must_change_password():
+    st.error("You must change your password before accessing this page.")
+    st.info("Open **Change Password** from the sidebar.")
+    st.stop()
 
 # ---------------- HOME PAGE ----------------
 st.title("📄 Intelligent Resume Parser using NLP")
