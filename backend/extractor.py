@@ -243,7 +243,7 @@ def match_candidate(
     # Experience: JD skills + job title words vs candidate experience text
     job_title_words = [
         w for w in re.split(r"[\s,/\-]+", job_title.strip())
-        if len(w) > 2
+        if len(w) >= 2
     ]
     experience_keywords = list(dict.fromkeys(jd_skills + job_title_words))
     experience_text = candidate_experience if candidate_experience else ""

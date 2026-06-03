@@ -108,6 +108,7 @@ else:
     st.markdown(f"**{len(st.session_state['upload_history'])} resume(s) uploaded this session**")
 
     history_df = pd.DataFrame(st.session_state["upload_history"])
+    history_df.index = history_df.index + 1 
     st.dataframe(history_df, use_container_width=True)
 
     st.divider()

@@ -88,6 +88,7 @@ if response.status_code == 200:
             })
 
         df = pd.DataFrame(candidate_data)
+        df.index = df.index + 1
         st.dataframe(df, use_container_width=True)
 
         st.divider()
