@@ -192,15 +192,100 @@ def extract_experience(text):
     result = roles + companies
     return result if result else ["Experience not found"]
 
-def match_candidate(candidate_skills, jd_text):
+CERTIFICATIONS_LIST = [
+    "AWS Certified Solutions Architect", "AWS Certified Developer",
+    "AWS Certified SysOps Administrator", "AWS Certified", "Google Cloud Professional",
+    "Google Cloud", "Microsoft Azure", "Azure Administrator", "Azure Fundamentals",
+    "PMP", "Certified Scrum Master", "Scrum Master", "Scrum", "CPA", "CFA",
+    "CISSP", "CompTIA Security+", "CompTIA Network+", "CompTIA A+",
+    "Oracle Certified Professional", "Oracle Certified", "Oracle",
+    "Salesforce Certified Administrator", "Salesforce Certified", "Salesforce",
+    "HubSpot Inbound", "HubSpot", "TensorFlow Developer Certificate",
+    "TensorFlow Developer", "CKA", "CKAD", "CCNA", "CCNP", "ITIL",
+    "Six Sigma Green Belt", "Six Sigma", "PHR", "SHRM-CP",
+]
+
+def extract_certifications(text):
+    found_certifications = []
+    for cert in CERTIFICATIONS_LIST:
+        pattern = r'\b' + re.escape(cert) + r'\b'
+        if re.search(pattern, text, re.IGNORECASE):
+            found_certifications.append(cert)
+    return found_certifications if found_certifications else ["No certifications found"]
+
+
+def _whole_word_match(term, text):
+    pattern = r'\b' + re.escape(term) + r'\b'
+    return bool(re.search(pattern, text, re.IGNORECASE))
+
+
+def match_candidate(
+    candidate_skills,
+    jd_text,
+    candidate_experience="",
+    candidate_certifications="",
+    job_title="",
+):
     jd_skills = extract_skills(jd_text)
-    candidate_skills_list = [s.strip().lower() for s in candidate_skills.split(",") if s.strip()]
-    jd_skills_lower = [s.lower() for s in jd_skills]
+    jd_skills = [s for s in jd_skills if s != "No skills found"]
 
-    matched = [skill for skill in jd_skills_lower if skill in candidate_skills_list]
-    missing = [skill for skill in jd_skills_lower if skill not in candidate_skills_list]
+    matched_skills = []
+    missing_skills = []
+    for skill in jd_skills:
+        if _whole_word_match(skill, candidate_skills):
+            matched_skills.append(skill)
+        else:
+            missing_skills.append(skill)
 
-    total = len(jd_skills_lower)
-    score = round((len(matched) / total) * 100) if total > 0 else 0
+    total_skills = len(jd_skills)
+    skills_score = round((len(matched_skills) / total_skills) * 100) if total_skills > 0 else 0
 
-    return {"score": score, "matched": matched, "missing": missing}
+    # Experience: JD skills + job title words vs candidate experience text
+    job_title_words = [
+        w for w in re.split(r"[\s,/\-]+", job_title.strip())
+        if len(w) > 2
+    ]
+    experience_keywords = list(dict.fromkeys(jd_skills + job_title_words))
+    experience_text = candidate_experience if candidate_experience else ""
+
+    matched_experience = []
+    for keyword in experience_keywords:
+        if _whole_word_match(keyword, experience_text):
+            matched_experience.append(keyword)
+
+    total_exp = len(experience_keywords)
+    experience_score = (
+        round((len(matched_experience) / total_exp) * 100) if total_exp > 0 else 0
+    )
+
+    # Certifications: certs mentioned in JD vs candidate certifications
+    jd_certifications = extract_certifications(jd_text)
+    jd_certifications = [c for c in jd_certifications if c != "No certifications found"]
+    certs_text = candidate_certifications if candidate_certifications else ""
+
+    matched_certifications = []
+    for cert in jd_certifications:
+        if _whole_word_match(cert, certs_text):
+            matched_certifications.append(cert)
+
+    total_certs = len(jd_certifications)
+    certifications_score = (
+        round((len(matched_certifications) / total_certs) * 100) if total_certs > 0 else 0
+    )
+
+    score = round(
+        (skills_score * 0.60)
+        + (experience_score * 0.25)
+        + (certifications_score * 0.15)
+    )
+
+    return {
+        "score": score,
+        "matched_skills": matched_skills,
+        "missing_skills": missing_skills,
+        "matched_experience": matched_experience,
+        "matched_certifications": matched_certifications,
+        "skills_score": skills_score,
+        "experience_score": experience_score,
+        "certifications_score": certifications_score,
+    }

@@ -20,6 +20,7 @@ from extractor import (
     extract_skills,
     extract_education,
     extract_experience,
+    extract_certifications,
     match_candidate
 )
 
@@ -50,8 +51,9 @@ init_db()
 
 # ---------------- MODELS ----------------
 
-class JDRequest(BaseModel):
+class MatchRequest(BaseModel):
     jd_text: str
+    job_title: str = ""
 
 # ---------------- ROUTES ----------------
 
@@ -82,8 +84,11 @@ async def upload_resume(file: UploadFile = File(...)):
     skills = extract_skills(resume_text)
     education = extract_education(resume_text)
     experience = extract_experience(resume_text)
+    certifications = extract_certifications(resume_text)
 
-    saved = save_candidate(name, email, phone, skills, education, experience)
+    saved = save_candidate(
+        name, email, phone, skills, education, experience, certifications
+    )
 
     return {
         "saved": saved,
@@ -92,7 +97,8 @@ async def upload_resume(file: UploadFile = File(...)):
         "phone": phone,
         "skills": skills,
         "education": education,
-        "experience": experience
+        "experience": experience,
+        "certifications": certifications,
     }
 
 
@@ -138,18 +144,31 @@ def get_candidate(candidate_id: int):
 
 
 @app.post("/match")
-def match_candidates(request: JDRequest):
+def match_candidates(request: MatchRequest):
     candidates = get_all_candidates()
     results = []
 
     for c in candidates:
-        result = match_candidate(c[4], request.jd_text)
+        candidate_experience = c[6] if len(c) > 6 else ""
+        candidate_certifications = c[7] if len(c) > 7 else ""
+        result = match_candidate(
+            c[4],
+            request.jd_text,
+            candidate_experience=candidate_experience,
+            candidate_certifications=candidate_certifications,
+            job_title=request.job_title,
+        )
         results.append({
             "name": c[1],
             "email": c[2],
             "score": result["score"],
-            "matched": result["matched"],
-            "missing": result["missing"]
+            "matched_skills": result["matched_skills"],
+            "missing_skills": result["missing_skills"],
+            "matched_experience": result["matched_experience"],
+            "matched_certifications": result["matched_certifications"],
+            "skills_score": result["skills_score"],
+            "experience_score": result["experience_score"],
+            "certifications_score": result["certifications_score"],
         })
 
     results = sorted(results, key=lambda x: x["score"], reverse=True)

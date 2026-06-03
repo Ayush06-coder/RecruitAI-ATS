@@ -19,6 +19,11 @@ st.title("🎯 JD Matching & Candidate Ranking")
 st.caption("Paste a job description to match and rank all candidates.")
 st.divider()
 
+job_title = st.text_input(
+    "Job Title (optional)",
+    placeholder="e.g. AI Engineer, Data Scientist",
+)
+
 jd_text = st.text_area(
     "Paste Job Description here",
     height=200,
@@ -31,7 +36,7 @@ if jd_text:
 
         response = requests.post(
             f"{API_URL}/match",
-            json={"jd_text": jd_text}
+            json={"jd_text": jd_text, "job_title": job_title},
         )
 
     if response.status_code == 200:
@@ -66,9 +71,37 @@ if jd_text:
 
                 with col_info:
                     st.markdown(f"**{result['name']}** — {result['email']}")
+                    st.markdown("**Overall Match Score**")
                     st.progress(result["score"] / 100)
-                    st.markdown(f"✅ **Matched:** {', '.join(result['matched']) if result['matched'] else 'None'}")
-                    st.markdown(f"❌ **Missing:** {', '.join(result['missing']) if result['missing'] else 'None'}")
+
+                    col_skills, col_exp, col_certs = st.columns(3)
+                    with col_skills:
+                        st.caption(f"Skills ({result['skills_score']}%)")
+                        st.progress(result["skills_score"] / 100)
+                    with col_exp:
+                        st.caption(f"Experience ({result['experience_score']}%)")
+                        st.progress(result["experience_score"] / 100)
+                    with col_certs:
+                        st.caption(f"Certifications ({result['certifications_score']}%)")
+                        st.progress(result["certifications_score"] / 100)
+
+                    matched_skills = result.get("matched_skills", [])
+                    missing_skills = result.get("missing_skills", [])
+                    matched_experience = result.get("matched_experience", [])
+                    matched_certifications = result.get("matched_certifications", [])
+
+                    st.markdown(
+                        f"✅ **Matched Skills:** {', '.join(matched_skills) if matched_skills else 'None'}"
+                    )
+                    st.markdown(
+                        f"❌ **Missing Skills:** {', '.join(missing_skills) if missing_skills else 'None'}"
+                    )
+                    st.markdown(
+                        f"💼 **Matched Experience:** {', '.join(matched_experience) if matched_experience else 'None'}"
+                    )
+                    st.markdown(
+                        f"📜 **Matched Certifications:** {', '.join(matched_certifications) if matched_certifications else 'None'}"
+                    )
 
                 st.divider()
 

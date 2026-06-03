@@ -15,9 +15,15 @@ def init_db():
             phone TEXT,
             skills TEXT,
             education TEXT,
-            experience TEXT
+            experience TEXT,
+            certifications TEXT
         )
     """)
+
+    cursor.execute("PRAGMA table_info(candidates)")
+    columns = [row[1] for row in cursor.fetchall()]
+    if "certifications" not in columns:
+        cursor.execute("ALTER TABLE candidates ADD COLUMN certifications TEXT")
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
@@ -55,7 +61,7 @@ def init_db():
     conn.commit()
     conn.close()
 
-def save_candidate(name, email, phone, skills, education, experience):
+def save_candidate(name, email, phone, skills, education, experience, certifications=None):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -67,16 +73,20 @@ def save_candidate(name, email, phone, skills, education, experience):
         conn.close()
         return False   
 
+    if certifications is None:
+        certifications = []
+
     cursor.execute("""
-        INSERT INTO candidates (name, email, phone, skills, education, experience)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO candidates (name, email, phone, skills, education, experience, certifications)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     """, (
         name,
         email,
         phone,
         ", ".join(skills),
         ", ".join(education),
-        ", ".join(experience)
+        ", ".join(experience),
+        ", ".join(certifications),
     ))
 
     conn.commit()
