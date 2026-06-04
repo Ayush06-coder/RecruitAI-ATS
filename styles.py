@@ -391,12 +391,6 @@ def load_css():
     ::-webkit-scrollbar-thumb:hover {
         background: #0891b2;
     }
-
-    /* ============ HIDE STREAMLIT DEFAULTS ============ */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-
     </style>
     """
 
