@@ -1,112 +1,120 @@
 import streamlit as st
 import requests
 import pandas as pd
+from auth import is_logged_in, render_sidebar, must_change_password
+from styles import inject_css
 
-from auth import enforce_access, render_sidebar
+st.set_page_config(page_title="JD Matching", page_icon="🎯", layout="wide")
+inject_css()
 
-st.set_page_config(
-    page_title="JD Matching",
-    page_icon="🎯",
-    layout="wide"
-)
+if not is_logged_in():
+    st.warning("Please login first.")
+    st.stop()
 
-enforce_access()
 render_sidebar()
+
+if must_change_password():
+    st.error("You must change your password before accessing this page.")
+    st.stop()
 
 API_URL = "http://localhost:8000"
 
-st.title("🎯 JD Matching & Candidate Ranking")
-st.caption("Paste a job description to match and rank all candidates.")
-st.divider()
+st.markdown("""
+<div class="hero">
+    <h1>🎯 JD Matching & Ranking</h1>
+    <p class="hero-subtitle">Match and rank all candidates against a job description</p>
+</div>
+""", unsafe_allow_html=True)
 
-job_title = st.text_input(
-    "Job Title (optional)",
-    placeholder="e.g. AI Engineer, Data Scientist",
-)
+col1, col2 = st.columns([1, 2])
 
-jd_text = st.text_area(
-    "Paste Job Description here",
-    height=200,
-    placeholder="Paste the job description here..."
-)
+with col1:
+    job_title = st.text_input("", placeholder="💼 Job Title — e.g. AI Engineer")
+
+with col2:
+    jd_text = st.text_area("", height=120, placeholder="📋 Paste job description here...")
 
 if jd_text:
-
     with st.spinner("Matching candidates..."):
-
         response = requests.post(
             f"{API_URL}/match",
-            json={"jd_text": jd_text, "job_title": job_title},
+            json={"jd_text": jd_text, "job_title": job_title}
         )
 
     if response.status_code == 200:
-
         data = response.json()
         results = data["results"]
 
         if not results:
             st.warning("No candidates in database. Upload resumes first.")
-
         else:
             st.divider()
 
-            # Top Candidate
             top = results[0]
-            st.success(f"🏆 Top Candidate: {top['name']} ({top['score']}%)")
+            st.markdown(f"""
+            <div class="card" style="border-color: #22d3ee; background: linear-gradient(135deg, #061a20, #0a2a35)">
+                <div style="display:flex; align-items:center; gap:1rem">
+                    <span style="font-size:2rem">🏆</span>
+                    <div>
+                        <div class="card-title" style="font-size:1.1rem">Top Candidate</div>
+                        <div style="color:#e2e8f0; font-size:1.3rem; font-weight:700">{top['name']} — {top['score']}% Match</div>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
-            st.divider()
-
-            # Match Results
-            st.subheader("Match Results")
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown('<div class="card-title" style="font-size:1.1rem">📊 Match Results</div>', unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
 
             for i, result in enumerate(results):
+                medal = "🥇" if i == 0 else "🥈" if i == 1 else "🥉" if i == 2 else f"#{i+1}"
+                color = "#22d3ee" if result['score'] >= 70 else "#f59e0b" if result['score'] >= 40 else "#ef4444"
+                dot = "🟢" if result['score'] >= 70 else "🟡" if result['score'] >= 40 else "🔴"
 
-                col_rank, col_info = st.columns([1, 5])
+                st.markdown(f"""
+                <div class="rank-card">
+                    <div style="display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap">
+                        <div style="text-align:center; min-width:80px">
+                            <div style="font-size:1.8rem">{medal}</div>
+                            <div style="font-size:1.5rem; font-weight:700; color:{color}">{dot} {result['score']}%</div>
+                        </div>
+                        <div style="flex:1">
+                            <div style="font-size:1.1rem; font-weight:600; color:#e2e8f0">{result['name']}</div>
+                            <div style="color:#64748b; font-size:0.85rem">{result['email']}</div>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
 
-                with col_rank:
-                    medal = "🥇" if i == 0 else "🥈" if i == 1 else "🥉" if i == 2 else f"#{i+1}"
-                    st.markdown(f"### {medal}")
-                    color = "🟢" if result['score'] >= 70 else "🟡" if result['score'] >= 40 else "🔴"
-                    st.markdown(f"## {color} {result['score']}%")
+                col_s, col_e, col_c = st.columns(3)
+                with col_s:
+                    st.caption(f"Skills ({result['skills_score']}%)")
+                    st.progress(result["skills_score"] / 100)
+                with col_e:
+                    st.caption(f"Experience ({result['experience_score']}%)")
+                    st.progress(result["experience_score"] / 100)
+                with col_c:
+                    st.caption(f"Certifications ({result['certifications_score']}%)")
+                    st.progress(result["certifications_score"] / 100)
 
-                with col_info:
-                    st.markdown(f"**{result['name']}** — {result['email']}")
-                    st.markdown("**Overall Match Score**")
-                    st.progress(result["score"] / 100)
+                matched_skills = result.get("matched_skills", [])
+                missing_skills = result.get("missing_skills", [])
 
-                    col_skills, col_exp, col_certs = st.columns(3)
-                    with col_skills:
-                        st.caption(f"Skills ({result['skills_score']}%)")
-                        st.progress(result["skills_score"] / 100)
-                    with col_exp:
-                        st.caption(f"Experience ({result['experience_score']}%)")
-                        st.progress(result["experience_score"] / 100)
-                    with col_certs:
-                        st.caption(f"Certifications ({result['certifications_score']}%)")
-                        st.progress(result["certifications_score"] / 100)
+                matched_html = "".join([f'<span class="badge badge-green">{s}</span>' for s in matched_skills]) if matched_skills else "<span style='color:#64748b'>None</span>"
+                missing_html = "".join([f'<span class="badge badge-red">{s}</span>' for s in missing_skills]) if missing_skills else "<span style='color:#64748b'>None</span>"
 
-                    matched_skills = result.get("matched_skills", [])
-                    missing_skills = result.get("missing_skills", [])
-                    matched_experience = result.get("matched_experience", [])
-                    matched_certifications = result.get("matched_certifications", [])
-
-                    st.markdown(
-                        f"✅ **Matched Skills:** {', '.join(matched_skills) if matched_skills else 'None'}"
-                    )
-                    st.markdown(
-                        f"❌ **Missing Skills:** {', '.join(missing_skills) if missing_skills else 'None'}"
-                    )
-                    st.markdown(
-                        f"💼 **Matched Experience:** {', '.join(matched_experience) if matched_experience else 'None'}"
-                    )
-                    st.markdown(
-                        f"📜 **Matched Certifications:** {', '.join(matched_certifications) if matched_certifications else 'None'}"
-                    )
+                st.markdown(f"""
+                <div style="margin: 0.5rem 0 1.5rem 0">
+                    <p style="margin:0.3rem 0">✅ <strong style="color:#22d3ee">Matched:</strong> {matched_html}</p>
+                    <p style="margin:0.3rem 0">❌ <strong style="color:#ef4444">Missing:</strong> {missing_html}</p>
+                </div>
+                """, unsafe_allow_html=True)
 
                 st.divider()
 
-            # Ranking Table
-            st.subheader("📊 Ranking Table")
+            st.markdown('<div class="card-title">📊 Ranking Table</div>', unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
 
             ranking_data = []
             for i, result in enumerate(results):
@@ -115,10 +123,15 @@ if jd_text:
                     "Rank": medal,
                     "Name": result["name"],
                     "Email": result["email"],
-                    "Match Score": f"{result['score']}%"
+                    "Overall": f"{result['score']}%",
+                    "Skills": f"{result['skills_score']}%",
+                    "Experience": f"{result['experience_score']}%",
+                    "Certifications": f"{result['certifications_score']}%"
                 })
 
-            st.dataframe(pd.DataFrame(ranking_data), use_container_width=True)
+            rank_df = pd.DataFrame(ranking_data)
+            rank_df.index = rank_df.index + 1
+            st.dataframe(rank_df, use_container_width=True)
 
     else:
         st.error("Could not connect to backend. Make sure FastAPI is running.")

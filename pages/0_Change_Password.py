@@ -8,6 +8,9 @@ st.set_page_config(
     layout="wide"
 )
 
+from styles import inject_css
+inject_css()
+
 enforce_access(allow_password_change_page=True)
 render_sidebar()
 
