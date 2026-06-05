@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 import pandas as pd
-from auth import is_logged_in, render_sidebar, must_change_password
+from auth import is_logged_in, render_sidebar, must_change_password,is_admin
 from styles import inject_css
 
 st.set_page_config(page_title="Candidates", page_icon="👥", layout="wide")
@@ -110,6 +110,24 @@ if response.status_code == 200:
                     <p style="color:#a0aec0">{c['experience']}</p>
                 </div>
                 """, unsafe_allow_html=True)
+
+                if is_admin():
+                    st.divider()
+
+                    if st.button(
+                        "🗑️ Delete Candidate",
+                        key=f"delete_{c['id']}"
+                    ):
+
+                        response = requests.delete(
+                            f"{API_URL}/candidate/{c['id']}"
+                        )
+
+                        if response.status_code == 200:
+                            st.success("Candidate deleted successfully.")
+                            st.rerun()
+                        else:
+                            st.error("Failed to delete candidate.")
 
 else:
     st.error("Could not connect to backend. Make sure FastAPI is running.")
