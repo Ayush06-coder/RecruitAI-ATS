@@ -275,3 +275,164 @@ def count_admin_users():
     count = cursor.fetchone()[0]
     conn.close()
     return count
+
+# ============ JOB FUNCTIONS ============
+
+def init_jobs_db():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS jobs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT,
+            department TEXT,
+            location TEXT,
+            experience TEXT,
+            description TEXT,
+            required_skills TEXT,
+            required_certifications TEXT,
+            posted_date TEXT,
+            status TEXT DEFAULT 'open',
+            posted_by TEXT
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS applications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            job_id INTEGER,
+            candidate_name TEXT,
+            candidate_email TEXT,
+            candidate_skills TEXT,
+            candidate_certifications TEXT,
+            match_score REAL,
+            skills_score REAL,
+            experience_score REAL,
+            certifications_score REAL,
+            status TEXT DEFAULT 'Applied',
+            applied_date TEXT,
+            resume_path TEXT,
+            FOREIGN KEY (job_id) REFERENCES jobs(id)
+        )
+    """)
+
+    conn.commit()
+    conn.close()
+
+
+def create_job(title, department, location, experience,
+               description, required_skills, required_certifications, posted_by):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    from datetime import datetime
+    posted_date = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    cursor.execute("""
+        INSERT INTO jobs (title, department, location, experience,
+                         description, required_skills, required_certifications,
+                         posted_date, status, posted_by)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open', ?)
+    """, (title, department, location, experience,
+          description, required_skills, required_certifications,
+          posted_date, posted_by))
+
+    conn.commit()
+    conn.close()
+
+
+def get_all_jobs():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM jobs ORDER BY posted_date DESC")
+    jobs = cursor.fetchall()
+    conn.close()
+    return jobs
+
+
+def get_job_by_id(job_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM jobs WHERE id = ?", (job_id,))
+    job = cursor.fetchone()
+    conn.close()
+    return job
+
+
+def update_job_status(job_id, status):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE jobs SET status = ? WHERE id = ?", (status, job_id))
+    conn.commit()
+    conn.close()
+
+
+def delete_job(job_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM jobs WHERE id = ?", (job_id,))
+    cursor.execute("DELETE FROM applications WHERE job_id = ?", (job_id,))
+    conn.commit()
+    conn.close()
+
+
+def save_application(job_id, candidate_name, candidate_email,
+                     candidate_skills, candidate_certifications,
+                     match_score, skills_score, experience_score,
+                     certifications_score, resume_path):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    # Check if already applied
+    cursor.execute("""
+        SELECT id FROM applications
+        WHERE job_id = ? AND candidate_email = ?
+    """, (job_id, candidate_email))
+    existing = cursor.fetchone()
+
+    if existing:
+        conn.close()
+        return False
+
+    from datetime import datetime
+    applied_date = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    cursor.execute("""
+        INSERT INTO applications (job_id, candidate_name, candidate_email,
+                                  candidate_skills, candidate_certifications,
+                                  match_score, skills_score, experience_score,
+                                  certifications_score, status, applied_date, resume_path)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Applied', ?, ?)
+    """, (job_id, candidate_name, candidate_email,
+          candidate_skills, candidate_certifications,
+          match_score, skills_score, experience_score,
+          certifications_score, applied_date, resume_path))
+
+    conn.commit()
+    conn.close()
+    return True
+
+
+def get_applications_by_job(job_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT * FROM applications
+        WHERE job_id = ?
+        ORDER BY match_score DESC
+    """, (job_id,))
+    applications = cursor.fetchall()
+    conn.close()
+    return applications
+
+
+def update_application_status(application_id, status):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE applications SET status = ? WHERE id = ?",
+        (status, application_id)
+    )
+    conn.commit()
+    conn.close()
