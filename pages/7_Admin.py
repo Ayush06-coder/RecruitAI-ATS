@@ -9,6 +9,7 @@ from auth import (
     create_user_by_admin,
     force_reset_password_by_admin,
     remove_user_by_admin,
+    is_logged_in,
 )
 from styles import inject_css
 
@@ -19,6 +20,10 @@ st.set_page_config(
 )
 
 inject_css()
+
+if not is_logged_in():
+    st.switch_page("pages/2_Login.py")
+
 enforce_access(admin_only=True)
 render_sidebar()
 

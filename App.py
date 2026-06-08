@@ -1,32 +1,28 @@
 import streamlit as st
-from auth import login_page, is_logged_in, render_sidebar, must_change_password
+import requests
 from styles import inject_css
 
 st.set_page_config(
-    page_title="Intelligent Resume Parser",
+    page_title="RecruitAI — Intelligent Hiring",
     page_icon="📄",
     layout="wide"
 )
 
 inject_css()
 
-if not is_logged_in():
-    login_page()
-    st.stop()
+API_URL = "http://localhost:8000"
 
-render_sidebar()
-
-if must_change_password():
-    st.error("You must change your password before accessing this page.")
-    st.info("Open **Change Password** from the sidebar.")
-    st.stop()
-
-# ---------------- HOME PAGE ----------------
+# ---------------- HERO ----------------
 
 st.markdown("""
-<div class="hero">
-    <h1>📄 Intelligent Resume Parser</h1>
-    <p class="hero-subtitle">AI-powered recruitment tool built with Python, FastAPI, Streamlit and spaCy NLP</p>
+<div class="hero" style="padding: 4rem 2rem">
+    <h1>📄 RecruitAI</h1>
+    <p class="hero-subtitle" style="font-size:1.2rem">
+        Intelligent Resume Parsing & Candidate Matching Platform
+    </p>
+    <p style="color:#0e3a45; margin-top:1rem; font-size:0.9rem">
+        Powered by Python · FastAPI · spaCy NLP
+    </p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -36,17 +32,17 @@ with col1:
     st.markdown("""
     <div class="feature-card">
         <div class="feature-icon">📤</div>
-        <div class="feature-title">Upload Resumes</div>
-        <div class="feature-desc">Upload PDF or DOCX resumes with instant NLP parsing</div>
+        <div class="feature-title">Easy Apply</div>
+        <div class="feature-desc">Upload your resume and apply to jobs in seconds</div>
     </div>
     """, unsafe_allow_html=True)
 
 with col2:
     st.markdown("""
     <div class="feature-card">
-        <div class="feature-icon">👥</div>
-        <div class="feature-title">Candidate Database</div>
-        <div class="feature-desc">Search and filter all parsed candidates instantly</div>
+        <div class="feature-icon">🧠</div>
+        <div class="feature-title">AI Matching</div>
+        <div class="feature-desc">Smart NLP matching against job requirements</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -54,49 +50,107 @@ with col3:
     st.markdown("""
     <div class="feature-card">
         <div class="feature-icon">🎯</div>
-        <div class="feature-title">JD Matching</div>
-        <div class="feature-desc">Match and rank candidates against any job description</div>
+        <div class="feature-title">Instant Score</div>
+        <div class="feature-desc">Get your match score immediately after applying</div>
     </div>
     """, unsafe_allow_html=True)
 
 with col4:
     st.markdown("""
     <div class="feature-card">
-        <div class="feature-icon">📊</div>
-        <div class="feature-title">Analytics</div>
-        <div class="feature-desc">Visual insights across all candidates and skills</div>
+        <div class="feature-icon">🏆</div>
+        <div class="feature-title">Fair Ranking</div>
+        <div class="feature-desc">Ranked fairly based on skills, experience and certifications</div>
     </div>
     """, unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
+st.divider()
+
+# ---------------- OPEN JOBS ----------------
 
 st.markdown("""
-<div class="card">
-    <div class="card-title">🧠 What this system does</div>
-    <p style="color: #a0aec0; margin: 0.5rem 0; line-height: 1.8;">
-        📤 <strong style="color: #818cf8;">Upload</strong> resumes in PDF or DOCX format<br>
-        🧠 <strong style="color: #818cf8;">Extracts</strong> Name, Email, Phone, Skills, Education, Experience using NLP<br>
-        👥 <strong style="color: #818cf8;">Stores</strong> all candidates in a searchable database<br>
-        🎯 <strong style="color: #818cf8;">Matches</strong> candidates against a job description<br>
-        🏆 <strong style="color: #818cf8;">Ranks</strong> candidates by match score
-    </p>
+<div class="card-title" style="font-size:1.3rem; margin-bottom:1rem">
+    💼 Current Openings
 </div>
 """, unsafe_allow_html=True)
 
+try:
+    response = requests.get(f"{API_URL}/jobs")
+    jobs = response.json().get("jobs", [])
+    open_jobs = [j for j in jobs if j["status"] == "open"]
+except:
+    open_jobs = []
+
+if not open_jobs:
+    st.info("No open positions at the moment. Check back soon.")
+
+else:
+    st.markdown(
+        f"<p style='color:#22d3ee; font-weight:600; margin-bottom:1.5rem'>"
+        f"{len(open_jobs)} open position(s)</p>",
+        unsafe_allow_html=True
+    )
+
+    for job in open_jobs:
+        skills_html = "".join([
+            f'<span class="badge badge-purple">{s.strip()}</span>'
+            for s in job["required_skills"].split(",") if s.strip()
+        ])
+
+        certs_html = "".join([
+            f'<span class="badge badge-yellow">{c.strip()}</span>'
+            for c in job["required_certifications"].split(",") if c.strip()
+        ]) if job["required_certifications"] else ""
+
+        st.markdown(f"""
+        <div class="card">
+            <div style="display:flex; justify-content:space-between;
+                        align-items:flex-start; flex-wrap:wrap; gap:1rem">
+                <div>
+                    <div style="font-size:1.2rem; font-weight:700;
+                                color:#e2e8f0">{job['title']}</div>
+                    <div style="color:#64748b; font-size:0.85rem; margin-top:0.3rem">
+                        🏢 {job['department']} &nbsp;|&nbsp;
+                        📍 {job['location']} &nbsp;|&nbsp;
+                        🕐 {job['experience']} &nbsp;|&nbsp;
+                        📅 {job['posted_date']}
+                    </div>
+                </div>
+                <span class="badge badge-green">🟢 Open</span>
+            </div>
+            <div style="margin-top:0.8rem; color:#a0aec0;
+                        font-size:0.9rem; line-height:1.6">
+                {job['description'][:250]}{'...' if len(job['description']) > 250 else ''}
+            </div>
+            <div style="margin-top:1rem">
+                <div style="color:#64748b; font-size:0.75rem;
+                            margin-bottom:0.4rem; text-transform:uppercase;
+                            letter-spacing:0.05em">Required Skills</div>
+                {skills_html}
+            </div>
+            {'<div style="margin-top:0.8rem"><div style="color:#64748b; font-size:0.75rem; margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.05em">Required Certifications</div>' + certs_html + '</div>' if certs_html else ''}
+        </div>
+        """, unsafe_allow_html=True)
+
+        if st.button(f"Apply for {job['title']}", key=f"apply_{job['id']}"):
+            st.session_state["apply_job_id"] = job["id"]
+            st.session_state["apply_job_title"] = job["title"]
+            st.switch_page("pages/1_Apply.py")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+st.divider()
+
+# ---------------- COMPANY LOGIN ----------------
+
 st.markdown("""
-<div class="card">
-    <div class="card-title">🚀 How to use</div>
-    <p style="color: #a0aec0; margin: 0.5rem 0; line-height: 1.8;">
-        1. Go to <strong style="color: #818cf8;">Upload Resume</strong> to parse a new resume<br>
-        2. Go to <strong style="color: #818cf8;">Candidates</strong> to view all stored candidates<br>
-        3. Go to <strong style="color: #818cf8;">JD Matching</strong> to match and rank candidates<br>
-        4. Go to <strong style="color: #818cf8;">Analytics</strong> to see hiring insights
-    </p>
+<div style="text-align:center; padding:1.5rem">
+    <p style="color:#64748b; font-size:0.9rem">Are you a recruiter or part of the hiring team?</p>
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown("""
-<p style="text-align: center; color: #2d2d5e; font-size: 0.8rem; margin-top: 2rem;">
-    Built with Python · FastAPI · Streamlit · spaCy · SQLite
-</p>
-""", unsafe_allow_html=True)
+col1, col2, col3 = st.columns([2, 1, 2])
+with col2:
+    if st.button("🔐 Company Login", use_container_width=True):
+        st.switch_page("pages/2_Login.py")

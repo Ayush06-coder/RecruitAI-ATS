@@ -105,7 +105,7 @@ def login_page():
             reset_login_failures(user["id"])
             user = get_user_by_username(username.strip())
             _set_logged_in_user(user)
-            st.rerun()
+            st.switch_page("pages/3_Dashboard.py")
 
 
 def logout():
@@ -115,7 +115,7 @@ def logout():
     st.session_state["role"] = ""
     st.session_state["must_change_password"] = False
     st.session_state["user_id"] = None
-    st.rerun()
+    st.switch_page("App.py")
 
 
 def is_logged_in():

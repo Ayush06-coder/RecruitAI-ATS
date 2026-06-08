@@ -9,13 +9,12 @@ st.set_page_config(page_title="Analytics", page_icon="📊", layout="wide")
 inject_css()
 
 if not is_logged_in():
-    st.warning("Please login first.")
-    st.stop()
+    st.switch_page("pages/2_Login.py")
 
 render_sidebar()
 
 if must_change_password():
-    st.error("You must change your password before accessing this page.")
+    st.error("You must change your password first.")
     st.stop()
 
 API_URL = "http://localhost:8000"
@@ -27,17 +26,16 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-response = requests.get(f"{API_URL}/candidates")
-
-if response.status_code != 200:
+try:
+    response = requests.get(f"{API_URL}/candidates")
+    data = response.json()
+    candidates = data["candidates"]
+except:
     st.error("Could not connect to backend. Make sure FastAPI is running.")
     st.stop()
 
-data = response.json()
-candidates = data["candidates"]
-
 if not candidates:
-    st.info("No candidates in database yet. Upload resumes to see analytics.")
+    st.info("No candidates in database yet. Candidates will appear after they apply to jobs.")
     st.stop()
 
 all_skills = []
@@ -49,6 +47,11 @@ all_experience = []
 for c in candidates:
     if c["experience"] and c["experience"] != "Experience not found":
         all_experience.extend([e.strip() for e in c["experience"].split(",")])
+
+all_education = []
+for c in candidates:
+    if c["education"] and c["education"] != "Education not found":
+        all_education.extend([e.strip() for e in c["education"].split(",")])
 
 col1, col2, col3 = st.columns(3)
 with col1:
@@ -76,13 +79,21 @@ with col3:
 st.markdown("<br>", unsafe_allow_html=True)
 st.divider()
 
-st.markdown('<div class="card-title" style="font-size:1.1rem">🛠️ Top Skills Across All Candidates</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="card-title" style="font-size:1.1rem">🛠️ Top Skills Across All Candidates</div>',
+    unsafe_allow_html=True
+)
 st.markdown("<br>", unsafe_allow_html=True)
 
 if all_skills:
     skill_counts = Counter(all_skills)
-    top_skills = dict(sorted(skill_counts.items(), key=lambda x: x[1], reverse=True)[:15])
-    skills_df = pd.DataFrame({"Skill": list(top_skills.keys()), "Count": list(top_skills.values())})
+    top_skills = dict(
+        sorted(skill_counts.items(), key=lambda x: x[1], reverse=True)[:15]
+    )
+    skills_df = pd.DataFrame({
+        "Skill": list(top_skills.keys()),
+        "Count": list(top_skills.values())
+    })
     st.bar_chart(skills_df.set_index("Skill"))
 
 st.divider()
@@ -90,13 +101,11 @@ st.divider()
 col_edu, col_exp = st.columns(2)
 
 with col_edu:
-    st.markdown('<div class="card-title">🎓 Education Breakdown</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="card-title">🎓 Education Breakdown</div>',
+        unsafe_allow_html=True
+    )
     st.markdown("<br>", unsafe_allow_html=True)
-
-    all_education = []
-    for c in candidates:
-        if c["education"] and c["education"] != "Education not found":
-            all_education.extend([e.strip() for e in c["education"].split(",")])
 
     if all_education:
         edu_keywords = {
@@ -126,11 +135,19 @@ with col_edu:
             if not matched:
                 edu_counts["Other"] += 1
         edu_counts = {k: v for k, v in edu_counts.items() if v > 0}
-        edu_df = pd.DataFrame({"Degree": list(edu_counts.keys()), "Count": list(edu_counts.values())})
+        edu_df = pd.DataFrame({
+            "Degree": list(edu_counts.keys()),
+            "Count": list(edu_counts.values())
+        })
         st.bar_chart(edu_df.set_index("Degree"))
+    else:
+        st.info("No education data available.")
 
 with col_exp:
-    st.markdown('<div class="card-title">💼 Experience Breakdown</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="card-title">💼 Experience Breakdown</div>',
+        unsafe_allow_html=True
+    )
     st.markdown("<br>", unsafe_allow_html=True)
 
     if all_experience:
@@ -159,17 +176,28 @@ with col_exp:
             if not matched:
                 role_counts["Other"] += 1
         role_counts = {k: v for k, v in role_counts.items() if v > 0}
-        role_df = pd.DataFrame({"Role": list(role_counts.keys()), "Count": list(role_counts.values())})
+        role_df = pd.DataFrame({
+            "Role": list(role_counts.keys()),
+            "Count": list(role_counts.values())
+        })
         st.bar_chart(role_df.set_index("Role"))
+    else:
+        st.info("No experience data available.")
 
 st.divider()
 
-st.markdown('<div class="card-title">👥 Candidate Skills Overview</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="card-title">👥 Candidate Skills Overview</div>',
+    unsafe_allow_html=True
+)
 st.markdown("<br>", unsafe_allow_html=True)
 
 overview_data = []
 for c in candidates:
-    skill_count = len([s for s in c["skills"].split(",") if s.strip() and s.strip() != "No skills found"])
+    skill_count = len([
+        s for s in c["skills"].split(",")
+        if s.strip() and s.strip() != "No skills found"
+    ])
     overview_data.append({
         "Name": c["name"],
         "Email": c["email"],
