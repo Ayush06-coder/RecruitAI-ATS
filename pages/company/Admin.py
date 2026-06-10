@@ -1,31 +1,10 @@
 import streamlit as st
 import pandas as pd
 import requests
-
-from auth import (
-    enforce_access,
-    render_sidebar,
-    get_users_for_admin,
-    create_user_by_admin,
-    force_reset_password_by_admin,
-    remove_user_by_admin,
-    is_logged_in,
-)
 from styles import inject_css
 
-st.set_page_config(
-    page_title="Admin Panel",
-    page_icon="🛠️",
-    layout="wide"
-)
-
+st.set_page_config(page_title="Admin Panel", page_icon="🛠️", layout="wide")
 inject_css()
-
-if not is_logged_in():
-    st.switch_page("pages/2_Login.py")
-
-enforce_access(admin_only=True)
-render_sidebar()
 
 API_URL = "http://localhost:8000"
 

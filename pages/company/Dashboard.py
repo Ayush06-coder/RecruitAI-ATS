@@ -1,25 +1,9 @@
 import streamlit as st
 import requests
-from auth import is_logged_in, render_sidebar, must_change_password
 from styles import inject_css
 
-st.set_page_config(
-    page_title="Dashboard",
-    page_icon="📊",
-    layout="wide"
-)
-
+st.set_page_config(page_title="Dashboard", page_icon="📊", layout="wide")
 inject_css()
-
-if not is_logged_in():
-    st.switch_page("pages/2_Login.py")
-
-render_sidebar()
-
-if must_change_password():
-    st.error("You must change your password first.")
-    st.info("Open Change Password from the sidebar.")
-    st.stop()
 
 API_URL = "http://localhost:8000"
 

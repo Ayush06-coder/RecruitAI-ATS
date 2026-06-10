@@ -214,3 +214,6 @@ def remove_user_by_admin(current_user_id: int, target_user_id: int):
 
     remove_user_by_id(target_user_id)
     return True, "User removed successfully."
+
+def get_user_role():
+    return st.session_state.get("role", "")
