@@ -436,3 +436,32 @@ def update_application_status(application_id, status):
     )
     conn.commit()
     conn.close()
+
+def get_applications_by_email(email):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT 
+            a.id,
+            a.job_id,
+            a.candidate_name,
+            a.candidate_email,
+            a.match_score,
+            a.skills_score,
+            a.experience_score,
+            a.certifications_score,
+            a.status,
+            a.applied_date,
+            j.title,
+            j.department,
+            j.location
+        FROM applications a
+        JOIN jobs j ON a.job_id = j.id
+        WHERE LOWER(a.candidate_email) = LOWER(?)
+        ORDER BY a.applied_date DESC
+    """, (email,))
+
+    applications = cursor.fetchall()
+    conn.close()
+    return applications

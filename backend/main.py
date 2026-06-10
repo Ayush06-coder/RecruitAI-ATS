@@ -21,7 +21,8 @@ from database import (
     delete_job,
     save_application,
     get_applications_by_job,
-    update_application_status
+    update_application_status,
+    get_applications_by_email
 )
 
 from parser import (
@@ -367,3 +368,30 @@ def get_job_applications(job_id: int):
 def update_status(application_id: int, request: ApplicationStatusRequest):
     update_application_status(application_id, request.status)
     return {"message": "Application status updated"}
+
+@app.get("/track/{email}")
+def track_applications(email: str):
+    applications = get_applications_by_email(email)
+
+    if not applications:
+        return {"found": False, "applications": []}
+
+    result = []
+    for a in applications:
+        result.append({
+            "id": a[0],
+            "job_id": a[1],
+            "name": a[2],
+            "email": a[3],
+            "match_score": a[4],
+            "skills_score": a[5],
+            "experience_score": a[6],
+            "certifications_score": a[7],
+            "status": a[8],
+            "applied_date": a[9],
+            "job_title": a[10],
+            "department": a[11],
+            "location": a[12]
+        })
+
+    return {"found": True, "applications": result}
