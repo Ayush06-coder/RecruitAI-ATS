@@ -395,3 +395,10 @@ def track_applications(email: str):
         })
 
     return {"found": True, "applications": result}
+
+@app.delete("/candidates/{candidate_id}")
+def remove_candidate(candidate_id: int):
+    deleted = delete_candidate(candidate_id)
+    if deleted:
+        return {"message": "Candidate deleted successfully"}
+    return {"error": "Candidate not found"}

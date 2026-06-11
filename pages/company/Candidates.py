@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import pandas as pd
 from styles import inject_css
+from auth import get_user_role
 
 st.set_page_config(page_title="Candidates", page_icon="👥", layout="wide")
 inject_css()
@@ -66,6 +67,7 @@ if response.status_code == 200:
         candidate_data = []
         for c in candidates:
             candidate_data.append({
+                "ID": c["id"],
                 "Name": c["name"],
                 "Email": c["email"],
                 "Phone": c["phone"],
@@ -121,5 +123,19 @@ if response.status_code == 200:
                     <p style="color:#a0aec0">{c['experience']}</p>
                 </div>
                 """, unsafe_allow_html=True)
+
+                # Admin-only delete button
+                if get_user_role() == "admin":
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    if st.button("🗑️ Delete Candidate", key=f"del_{c['id']}", type="primary"):
+                        with st.spinner("Deleting..."):
+                            del_response = requests.delete(
+                                f"{API_URL}/candidates/{c['id']}"
+                            )
+                        if del_response.status_code == 200:
+                            st.success("✅ Candidate deleted successfully")
+                            st.rerun()
+                        else:
+                            st.error("❌ Failed to delete candidate")
 else:
     st.error("Could not connect to backend.")

@@ -35,21 +35,25 @@ admin_page = st.Page("pages/company/Admin.py", title="🛠️ Admin", icon="🛠
 # ---------------- DETERMINE NAVIGATION BASED ON ROLE ----------------
 
 if not is_logged_in():
-    # Candidate — public pages only
     pages = [home_page, apply_page, track_page, login_page]
-
 elif get_user_role() == "admin":
-    # Admin — all company pages + admin
     pages = [
-        dashboard_page, applications_page, candidates_page,
-        jd_matching_page, analytics_page, admin_page, change_password_page
+        dashboard_page,      
+        applications_page,   
+        candidates_page,     
+        jd_matching_page,    
+        analytics_page,      
+        admin_page,          
+        change_password_page 
     ]
-
 elif get_user_role() == "user":
-    # User — company pages except admin
     pages = [
-        dashboard_page, applications_page, candidates_page,
-        jd_matching_page, analytics_page, change_password_page
+        dashboard_page,      
+        applications_page,   
+        candidates_page,     
+        jd_matching_page,    
+        analytics_page,      
+        change_password_page 
     ]
 
 else:
