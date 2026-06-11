@@ -105,7 +105,7 @@ def login_page():
             reset_login_failures(user["id"])
             user = get_user_by_username(username.strip())
             _set_logged_in_user(user)
-            st.switch_page("pages/3_Dashboard.py")
+            st.switch_page("pages/company/Dashboard.py")  # FIXED: updated path
 
 
 def logout():
@@ -214,6 +214,7 @@ def remove_user_by_admin(current_user_id: int, target_user_id: int):
 
     remove_user_by_id(target_user_id)
     return True, "User removed successfully."
+
 
 def get_user_role():
     return st.session_state.get("role", "")
