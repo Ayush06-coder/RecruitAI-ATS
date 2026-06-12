@@ -166,4 +166,4 @@ st.divider()
 col1, col2, col3 = st.columns([2, 1, 2])
 with col2:
     if st.button("← Back to Jobs", use_container_width=True):
-        st.switch_page("App.py")
+        st.switch_page("pages/Home.py")

@@ -1,12 +1,12 @@
 import streamlit as st
-from auth import enforce_access, change_current_user_password, must_change_password
+from auth import enforce_access, render_sidebar, change_current_user_password, must_change_password
 from styles import inject_css
-from auth import render_sidebar
 
 st.set_page_config(page_title="Change Password", page_icon="🔑", layout="wide")
 inject_css()
-render_sidebar()
+
 enforce_access(allow_password_change_page=True)
+render_sidebar()
 
 st.title("🔑 Change Password")
 # ... rest stays the same

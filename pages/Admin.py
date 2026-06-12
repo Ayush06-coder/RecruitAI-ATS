@@ -3,17 +3,20 @@ import pandas as pd
 import requests
 from auth import (
     enforce_access,
+    render_sidebar,
     get_users_for_admin,
     create_user_by_admin,
     force_reset_password_by_admin,
     remove_user_by_admin,
 )
 from styles import inject_css
-from auth import render_sidebar
 
 st.set_page_config(page_title="Admin Panel", page_icon="🛠️", layout="wide")
 inject_css()
+
+enforce_access(admin_only=True)
 render_sidebar()
+
 API_URL = "http://localhost:8000"
 
 st.markdown("""

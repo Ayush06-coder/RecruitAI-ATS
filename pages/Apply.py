@@ -12,7 +12,7 @@ API_URL = "http://localhost:8000"
 if "apply_job_id" not in st.session_state:
     st.warning("No job selected. Please select a job from the listings.")
     if st.button("← Back to Jobs"):
-        st.switch_page("App.py")
+        st.switch_page("pages/Home.py")
     st.stop()
 
 job_id = st.session_state["apply_job_id"]
@@ -30,7 +30,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 if st.button("← Back to Jobs"):
-    st.switch_page("App.py")
+    st.switch_page("pages/Home.py")
 
 st.divider()
 
@@ -182,4 +182,4 @@ else:
         st.session_state["application_submitted"] = False
         st.session_state["apply_job_id"] = None
         st.session_state["application_result"] = None
-        st.switch_page("App.py")
+        st.switch_page("pages/Home.py")

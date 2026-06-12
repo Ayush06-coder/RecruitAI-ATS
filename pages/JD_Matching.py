@@ -2,10 +2,12 @@ import streamlit as st
 import requests
 import pandas as pd
 from styles import inject_css
-from auth import render_sidebar
+from auth import enforce_access, render_sidebar
 
 st.set_page_config(page_title="JD Matching", page_icon="🎯", layout="wide")
 inject_css()
+
+enforce_access()
 render_sidebar()
 
 API_URL = "http://localhost:8000"
