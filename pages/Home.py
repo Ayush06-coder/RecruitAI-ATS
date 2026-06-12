@@ -121,7 +121,7 @@ else:
         if st.button(f"Apply for {job['title']}", key=f"apply_{job['id']}"):
             st.session_state["apply_job_id"] = job["id"]
             st.session_state["apply_job_title"] = job["title"]
-            st.switch_page("pages/public/Apply.py")
+            st.switch_page("pages/Apply.py")
         
         st.markdown("<br>", unsafe_allow_html=True)
 

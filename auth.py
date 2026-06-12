@@ -105,7 +105,7 @@ def login_page():
             reset_login_failures(user["id"])
             user = get_user_by_username(username.strip())
             _set_logged_in_user(user)
-            st.switch_page("pages/company/Dashboard.py")  # FIXED: updated path
+            st.switch_page("pages/Dashboard.py")  # FIXED: updated path
 
 
 def logout():
