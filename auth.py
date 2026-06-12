@@ -117,7 +117,6 @@ def logout():
     st.session_state["user_id"] = None
     st.switch_page("App.py")
 
-
 def is_logged_in():
     _init_session()
     return st.session_state.get("logged_in", False)

@@ -2,17 +2,13 @@ import streamlit as st
 from auth import enforce_access, change_current_user_password, must_change_password
 from styles import inject_css
 
-st.set_page_config(
-    page_title="Change Password",
-    page_icon="🔑",
-    layout="wide"
-)
-
+st.set_page_config(page_title="Change Password", page_icon="🔑", layout="wide")
 inject_css()
 
 enforce_access(allow_password_change_page=True)
 
 st.title("🔑 Change Password")
+# ... rest stays the same
 
 if must_change_password():
     st.warning("First login detected. You must change your password to continue.")

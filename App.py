@@ -1,4 +1,5 @@
 import streamlit as st
+import requests
 from styles import inject_css
 from auth import is_logged_in, get_user_role
 
@@ -11,65 +12,73 @@ st.set_page_config(
 
 inject_css()
 
-# ---------------- DEFINE PAGES ----------------
+# ---------------- ROLE-BASED SIDEBAR ----------------
 
-# Public pages (candidate — no login)
-home_page = st.Page("App.py", title="🏠 Home", icon="🏠", default=True)
-apply_page = st.Page("pages/public/Apply.py", title="📤 Apply", icon="📤")
-track_page = st.Page("pages/public/Track.py", title="🔍 Track", icon="🔍")
+def render_sidebar():
+    with st.sidebar:
+        st.markdown("## 📄 RecruitAI")
+        st.markdown("---")
+        
+        if not is_logged_in():
+            # Candidate — public pages
+            if st.button("🏠 Home", use_container_width=True):
+                st.switch_page("pages/public/Home.py")
+            if st.button("📤 Apply", use_container_width=True):
+                st.switch_page("pages/public/Apply.py")
+            if st.button("🔍 Track", use_container_width=True):
+                st.switch_page("pages/public/Track.py")
+            if st.button("🔐 Login", use_container_width=True):
+                st.switch_page("pages/Login.py")
+        
+        elif get_user_role() == "admin":
+            # Admin — all pages
+            st.markdown(f"👤 **{st.session_state.get('username', '')}** (Admin)")
+            st.markdown("---")
+            if st.button("📊 Dashboard", use_container_width=True):
+                st.switch_page("pages/company/Dashboard.py")
+            if st.button("📋 Applications", use_container_width=True):
+                st.switch_page("pages/company/Applications.py")
+            if st.button("👥 Candidates", use_container_width=True):
+                st.switch_page("pages/company/Candidates.py")
+            if st.button("🎯 JD Matching", use_container_width=True):
+                st.switch_page("pages/company/JD_Matching.py")
+            if st.button("📊 Analytics", use_container_width=True):
+                st.switch_page("pages/company/Analytics.py")
+            if st.button("🛠️ Admin", use_container_width=True):
+                st.switch_page("pages/company/Admin.py")
+            if st.button("🔑 Change Password", use_container_width=True):
+                st.switch_page("pages/company/Change_Password.py")
+            st.markdown("---")
+            if st.button("🚪 Logout", use_container_width=True):
+                from auth import logout
+                logout()
+        
+        elif get_user_role() == "user":
+            # User — no admin
+            st.markdown(f"👤 **{st.session_state.get('username', '')}** (User)")
+            st.markdown("---")
+            if st.button("📊 Dashboard", use_container_width=True):
+                st.switch_page("pages/company/Dashboard.py")
+            if st.button("📋 Applications", use_container_width=True):
+                st.switch_page("pages/company/Applications.py")
+            if st.button("👥 Candidates", use_container_width=True):
+                st.switch_page("pages/company/Candidates.py")
+            if st.button("🎯 JD Matching", use_container_width=True):
+                st.switch_page("pages/company/JD_Matching.py")
+            if st.button("📊 Analytics", use_container_width=True):
+                st.switch_page("pages/company/Analytics.py")
+            if st.button("🔑 Change Password", use_container_width=True):
+                st.switch_page("pages/company/Change_Password.py")
+            st.markdown("---")
+            if st.button("🚪 Logout", use_container_width=True):
+                from auth import logout
+                logout()
 
-# Login page
-login_page = st.Page("pages/Login.py", title="🔐 Login", icon="🔐")
+# ---------------- HOME PAGE CONTENT ----------------
 
-# Company pages (require login)
-dashboard_page = st.Page("pages/company/Dashboard.py", title="📊 Dashboard", icon="📊")
-applications_page = st.Page("pages/company/Applications.py", title="📋 Applications", icon="📋")
-candidates_page = st.Page("pages/company/Candidates.py", title="👥 Candidates", icon="👥")
-jd_matching_page = st.Page("pages/company/JD_Matching.py", title="🎯 JD Matching", icon="🎯")
-analytics_page = st.Page("pages/company/Analytics.py", title="📊 Analytics", icon="📊")
-change_password_page = st.Page("pages/company/Change_Password.py", title="🔑 Change Password", icon="🔑")
-
-# Admin-only page
-admin_page = st.Page("pages/company/Admin.py", title="🛠️ Admin", icon="🛠️")
-
-# ---------------- DETERMINE NAVIGATION BASED ON ROLE ----------------
+render_sidebar()
 
 if not is_logged_in():
-    pages = [home_page, apply_page, track_page, login_page]
-elif get_user_role() == "admin":
-    pages = [
-        dashboard_page,      
-        applications_page,   
-        candidates_page,     
-        jd_matching_page,    
-        analytics_page,      
-        admin_page,          
-        change_password_page 
-    ]
-elif get_user_role() == "user":
-    pages = [
-        dashboard_page,      
-        applications_page,   
-        candidates_page,     
-        jd_matching_page,    
-        analytics_page,      
-        change_password_page 
-    ]
-
-else:
-    # Fallback — public pages
-    pages = [home_page, apply_page, track_page, login_page]
-
-# ---------------- RENDER NAVIGATION ----------------
-
-nav = st.navigation(pages)
-nav.run()
-
-# ---------------- HOME PAGE CONTENT (only when on home) ----------------
-
-if not is_logged_in():
-    import requests
-    
     API_URL = "http://localhost:8000"
     
     st.markdown("""
@@ -84,7 +93,6 @@ if not is_logged_in():
     </div>
     """, unsafe_allow_html=True)
     
-    # Feature cards
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.markdown("""
@@ -122,7 +130,6 @@ if not is_logged_in():
     st.markdown("<br>", unsafe_allow_html=True)
     st.divider()
     
-    # Open jobs section
     st.markdown("""
     <div class="card-title" style="font-size:1.3rem; margin-bottom:1rem">
         💼 Current Openings
@@ -194,7 +201,6 @@ if not is_logged_in():
     
     st.divider()
     
-    # Company login CTA
     st.markdown("""
     <div style="text-align:center; padding:1.5rem">
         <p style="color:#64748b; font-size:0.9rem">
@@ -207,3 +213,15 @@ if not is_logged_in():
     with col2:
         if st.button("🔐 Company Login", use_container_width=True):
             st.switch_page("pages/Login.py")
+
+else:
+    # User is logged in — show welcome or redirect to dashboard
+    st.markdown("""
+    <div class="hero" style="padding: 3rem 2rem">
+        <h1>Welcome Back!</h1>
+        <p class="hero-subtitle">Use the sidebar to navigate to your dashboard.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    if st.button("Go to Dashboard", use_container_width=True):
+        st.switch_page("pages/company/Dashboard.py")
