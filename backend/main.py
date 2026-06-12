@@ -144,7 +144,8 @@ def get_candidates(search: str = ""):
             "phone": c[3],
             "skills": c[4],
             "education": c[5],
-            "experience": c[6]
+            "experience": c[6],
+            "certifications": c[7] if len(c) > 7 else ""  # ADD THIS LINE
         })
 
     return {"candidates": result}

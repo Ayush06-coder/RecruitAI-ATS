@@ -115,7 +115,7 @@ def logout():
     st.session_state["role"] = ""
     st.session_state["must_change_password"] = False
     st.session_state["user_id"] = None
-    st.switch_page("App.py")
+    st.switch_page("pages/Home.py")  # Change from "App.py"
 
 def is_logged_in():
     _init_session()
