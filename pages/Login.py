@@ -6,6 +6,6 @@ st.set_page_config(page_title="Company Login", page_icon="🔐", layout="wide")
 inject_css()
 
 if is_logged_in():
-    st.switch_page("pages/Dashboard.py")
+    st.rerun()
 
 login_page()

@@ -1,9 +1,11 @@
 import streamlit as st
 import requests
 from styles import inject_css
+from auth import render_sidebar
 
 st.set_page_config(page_title="Dashboard", page_icon="📊", layout="wide")
 inject_css()
+render_sidebar()
 
 API_URL = "http://localhost:8000"
 

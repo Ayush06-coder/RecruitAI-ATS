@@ -105,7 +105,7 @@ def login_page():
             reset_login_failures(user["id"])
             user = get_user_by_username(username.strip())
             _set_logged_in_user(user)
-            st.switch_page("pages/Dashboard.py")  # FIXED: updated path
+            st.rerun()
 
 
 def logout():
@@ -115,8 +115,7 @@ def logout():
     st.session_state["role"] = ""
     st.session_state["must_change_password"] = False
     st.session_state["user_id"] = None
-    st.switch_page("pages/Home.py")  # Change from "App.py"
-
+    st.rerun()
 def is_logged_in():
     _init_session()
     return st.session_state.get("logged_in", False)
@@ -148,11 +147,11 @@ def enforce_access(admin_only=False, allow_password_change_page=False):
 def render_sidebar():
     role = st.session_state.get("role", "user")
     with st.sidebar:
+        st.markdown("---")
         st.markdown(f"👤 Logged in as **{st.session_state.get('username', '')}**")
         st.caption(f"Role: {role.title()}")
-        if st.button("Logout"):
+        if st.button("🚪 Logout", use_container_width=True):
             logout()
-
 
 def change_current_user_password(new_password: str):
     user_id = st.session_state.get("user_id")

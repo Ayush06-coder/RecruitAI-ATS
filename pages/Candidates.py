@@ -3,10 +3,11 @@ import requests
 import pandas as pd
 from styles import inject_css
 from auth import get_user_role
+from auth import render_sidebar
 
 st.set_page_config(page_title="Candidates", page_icon="👥", layout="wide")
 inject_css()
-
+render_sidebar()
 API_URL = "http://localhost:8000"
 
 st.markdown("""
