@@ -19,6 +19,10 @@ render_sidebar()
 
 API_URL = "http://localhost:8000"
 
+# Initialize session state for generated JD
+if "generated_jd" not in st.session_state:
+    st.session_state.generated_jd = ""
+
 st.markdown("""
 <div class="hero">
     <h1>🛠️ Admin Panel</h1>
@@ -127,11 +131,38 @@ with tab2:
             placeholder="e.g. AWS Certified, PMP"
         )
 
-    job_description = st.text_area(
-        "Job Description",
-        height=150,
-        placeholder="Enter full job description here..."
-    )
+    # JD Generation row
+    jd_col1, jd_col2 = st.columns([4, 1])
+    with jd_col1:
+        job_description = st.text_area(
+            "Job Description",
+            value=st.session_state.generated_jd,
+            height=180,
+            placeholder="Enter description or click Auto Generate JD..."
+        )
+    with jd_col2:
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        if st.button("✨ Auto Generate JD", use_container_width=True, type="primary"):
+            if not job_title or not job_department or not job_experience or not job_skills:
+                st.error("Fill Title, Department, Experience & Skills first!")
+            else:
+                with st.spinner("Generating with AI..."):
+                    resp = requests.post(
+                        f"{API_URL}/generate-jd",
+                        json={
+                            "title": job_title,
+                            "department": job_department,
+                            "experience": job_experience,
+                            "required_skills": job_skills,
+                            "required_certifications": job_certs
+                        }
+                    )
+                    if resp.status_code == 200:
+                        st.session_state.generated_jd = resp.json()["job_description"]
+                        st.success("JD Generated! Click Post Job to use it.")
+                        st.rerun()
+                    else:
+                        st.error("Generation failed")
 
     if st.button("📢 Post Job"):
         if not job_title or not job_description or not job_skills:
@@ -151,6 +182,7 @@ with tab2:
                 }
             )
             if response.status_code == 200:
+                st.session_state.generated_jd = ""  # Clear after posting
                 st.success(f"✅ Job '{job_title}' posted successfully!")
                 st.rerun()
             else:
