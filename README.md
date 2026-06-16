@@ -1,6 +1,6 @@
 # 📄 RecruitAI — Intelligent Resume Parser & Hiring Platform
 
-&gt; An AI-powered recruitment platform with role-based access. Candidates apply to jobs without login. Recruiters login to manage applications, rank candidates, and post jobs with auto-generated JDs.
+> An AI-powered recruitment platform with role-based access. Candidates apply to jobs without login. Recruiters log in to manage applications, rank candidates, and post jobs with auto-generated JDs.
 
 ---
 
@@ -9,7 +9,7 @@
 Companies receive hundreds of resumes for each job posting. Manual screening is slow and biased. This platform solves that by:
 
 - **Public Job Board** — Candidates view open jobs and apply without any login
-- **AI Resume Parsing** — Automatically extracts name, email, phone, skills, education, experience, certifications from PDF/DOCX
+- **AI Resume Parsing** — Automatically extracts name, email, phone, skills, education, experience, and certifications from PDF/DOCX
 - **Smart Matching** — Calculates match scores (skills + experience + certifications) against job requirements
 - **Candidate Ranking** — Ranks applicants with medals and progress bars
 - **Auto JD Generation** — Admin generates professional job descriptions with one click
@@ -38,9 +38,9 @@ Companies receive hundreds of resumes for each job posting. Manual screening is 
 
 | Layer | Technology |
 |---|---|
-| Frontend | Streamlit (Multi-page + st.navigation) |
+| Frontend | Streamlit (Multi-page + `st.navigation`) |
 | Backend | FastAPI + Uvicorn |
-| NLP | spaCy (en_core_web_lg) + Regex |
+| NLP | spaCy (`en_core_web_lg`) + Regex |
 | Database | SQLite |
 | Auth | Bcrypt password hashing |
 | Styling | Custom CSS (Dark cyan/teal theme) |
@@ -49,36 +49,39 @@ Companies receive hundreds of resumes for each job posting. Manual screening is 
 ---
 
 ## 📁 Project Structure
+
+```
 resume-parser-project/
-├── App.py                          ← Navigation controller + Home page content
-├── auth.py                         ← Login/logout, roles, password management
-├── styles.py                       ← Shared dark CSS (cyan/teal theme)
-├── config.py                       ← Centralized API URL configuration
+├── App.py                      ← Navigation controller + Home page content
+├── auth.py                     ← Login/logout, roles, password management
+├── styles.py                   ← Shared dark CSS (cyan/teal theme)
+├── config.py                   ← Centralized API URL configuration
 ├── requirements.txt
 │
 ├── backend/
-│   ├── main.py                     ← FastAPI endpoints (upload, match, jobs, applications, generate-jd)
-│   ├── parser.py                   ← PDF/DOCX text extraction
-│   ├── extractor.py                ← NLP: name, email, phone, skills, education, experience, certifications
-│   └── database.py                 ← SQLite: candidates, jobs, applications, users
+│   ├── main.py                 ← FastAPI endpoints (upload, match, jobs, applications, generate-jd)
+│   ├── parser.py                ← PDF/DOCX text extraction
+│   ├── extractor.py             ← NLP: name, email, phone, skills, education, experience, certifications
+│   └── database.py              ← SQLite: candidates, jobs, applications, users
 │
 ├── database/
-│   └── resumes.db                  ← SQLite database
+│   └── resumes.db               ← SQLite database (created on first run, gitignored)
 │
 ├── pages/
-│   ├── Home.py                     ← Public landing page with job listings
-│   ├── Apply.py                    ← Candidate application form (no login)
-│   ├── Track.py                    ← Track application by email (no login)
-│   ├── Login.py                    ← Company login page
-│   ├── Dashboard.py                ← Company overview after login
-│   ├── Applications.py             ← View applications per job, ranked by match
-│   ├── JD_Matching.py             ← Match candidates against JD
-│   ├── Analytics.py                ← Charts: skills, education, experience breakdown
-│   ├── Admin.py                    ← Admin only: users, jobs, applications
-│   ├── Candidates.py              ← View all candidates (search, filter, admin delete)
-│   └── Change_Password.py          ← Password change (first-time + optional)
+│   ├── Home.py                  ← Public landing page with job listings
+│   ├── Apply.py                 ← Candidate application form (no login)
+│   ├── Track.py                 ← Track application by email (no login)
+│   ├── Login.py                 ← Company login page
+│   ├── Dashboard.py             ← Company overview after login
+│   ├── Applications.py          ← View applications per job, ranked by match
+│   ├── JD_Matching.py           ← Match candidates against a JD
+│   ├── Analytics.py             ← Charts: skills, education, experience breakdown
+│   ├── Admin.py                 ← Admin only: users, jobs, applications
+│   ├── Candidates.py            ← View all candidates (search, filter, admin delete)
+│   └── Change_Password.py       ← Password change (first-time + optional)
 │
-└── resumes/                        ← Uploaded resume files
+└── resumes/                     ← Sample / uploaded resume files
+```
 
 ---
 
@@ -103,91 +106,131 @@ resume-parser-project/
 
 ## ▶️ Running the Project
 
-**Prerequisites:**
+### Prerequisites
 ```bash
 pip install -r requirements.txt
 python -m spacy download en_core_web_lg
+```
 
-Open two separate terminals:
-Terminal 1 — FastAPI Backend:
+Create a `.env` file in the project root (used by `config.py`):
+```bash
+API_URL=http://localhost:8000
+```
+
+### Start the app
+Open two separate terminals from the project root.
+
+**Terminal 1 — FastAPI Backend:**
+```bash
 uvicorn backend.main:app --reload --port 8000
-Terminal 2 — Streamlit Frontend:
+```
+
+**Terminal 2 — Streamlit Frontend:**
+```bash
 streamlit run App.py
+```
 
-| Service       | URL                          |
-| ------------- | ---------------------------- |
-| Streamlit App | <http://localhost:8501>      |
-| FastAPI Docs  | <http://localhost:8000/docs> |
+| Service | URL |
+|---|---|
+| Streamlit App | http://localhost:8501 |
+| FastAPI Docs | http://localhost:8000/docs |
 
-🔌 API Endpoints
-| Method   | Endpoint                  | Description                              |
-| -------- | ------------------------- | ---------------------------------------- |
-| `GET`    | `/`                       | Health check                             |
-| `POST`   | `/upload`                 | Upload resume, parse and extract info    |
-| `GET`    | `/candidates`             | Fetch all candidates (optional ?search=) |
-| `DELETE` | `/candidates/{id}`        | Delete candidate (admin)                 |
-| `POST`   | `/match`                  | Match candidates against JD              |
-| `POST`   | `/generate-jd`            | Auto-generate job description            |
-| `POST`   | `/jobs`                   | Post new job                             |
-| `GET`    | `/jobs`                   | List all jobs                            |
-| `PUT`    | `/jobs/{id}`              | Update job status (open/closed)          |
-| `DELETE` | `/jobs/{id}`              | Delete job                               |
-| `POST`   | `/jobs/{id}/apply`        | Apply to job with resume                 |
-| `GET`    | `/jobs/{id}/applications` | Get applications for job                 |
-| `PUT`    | `/applications/{id}`      | Update application status                |
-| `GET`    | `/track/{email}`          | Track applications by email              |
+---
 
-🔐 Default Credentials
-| Role  | Username             | Password         | Notes                      |
-| ----- | -------------------- | ---------------- | -------------------------- |
-| Admin | `admin`              | `RecruitAI@2026` | Must change on first login |
-| User  | Any created by admin | `ChangeMe@123`   | Must change on first login |
+## 🔌 API Endpoints
 
-🎨 UI Theme
-Dark background: #070711
-Primary accent: Cyan/Teal (#22d3ee, #0891b2)
-Cards: Glassmorphism with subtle borders
-Progress bars: Gradient cyan
-Status badges: Color-coded (green, yellow, red, purple)
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/` | Health check |
+| `POST` | `/upload` | Upload resume, parse and extract info |
+| `GET` | `/candidates` | Fetch all candidates (optional `?search=`) |
+| `GET` | `/candidate/{id}` | Fetch a single candidate by ID |
+| `DELETE` | `/candidates/{id}` | Delete candidate (admin) |
+| `POST` | `/match` | Match candidates against a JD |
+| `POST` | `/generate-jd` | Auto-generate job description |
+| `POST` | `/jobs` | Post new job |
+| `GET` | `/jobs` | List all jobs |
+| `GET` | `/jobs/{id}` | Get a single job by ID |
+| `PUT` | `/jobs/{id}` | Update job status (open/closed) |
+| `DELETE` | `/jobs/{id}` | Delete job |
+| `POST` | `/jobs/{id}/apply` | Apply to job with resume |
+| `GET` | `/jobs/{id}/applications` | Get applications for a job |
+| `PUT` | `/applications/{id}` | Update application status |
+| `GET` | `/track/{email}` | Track applications by email |
 
-📸 Screenshots
-| Page         | Screenshot                     |
-| ------------ | ------------------------------ |
-| Landing Page | `Screenshots/Landing.png`      |
-| Apply Page   | `Screenshots/Apply.png`        |
-| Login Page   | `Screenshots/Login.png`        |
-| Dashboard    | `Screenshots/Dashboard.png`    |
-| Applications | `Screenshots/Applications.png` |
-| JD Matching  | `Screenshots/JD_Matching.png`  |
-| Analytics    | `Screenshots/Analytics.png`    |
-| Admin Panel  | `Screenshots/Admin.png`        |
-| Candidates   | `Screenshots/Candidates.png`   |
+---
 
-📦 Dependencies
-See requirements.txt for full list. Key packages:
-streamlit — Frontend UI
-fastapi + uvicorn — Backend API
-spacy + en_core_web_lg — NLP processing
-bcrypt — Password hashing
-pdfplumber — PDF text extraction
-python-docx — DOCX text extraction
-pandas — Data tables
-requests — HTTP calls
-python-dotenv — Environment variables
+## 🔐 Default Credentials
 
-🌿 Git Branches
-| Branch                | Description                                    |
-| --------------------- | ---------------------------------------------- |
-| `main`                | Current stable version with full workflow      |
-| `workflow-redesign`   | Merged — public apply flow + company dashboard |
-| `navigation-redesign` | Merged — role-based sidebar with st.navigation |
+| Role | Username | Password | Notes |
+|---|---|---|---|
+| Admin | `admin` | `RecruitAI@2026` | Must change on first login |
+| User | Created by admin | `ChangeMe@123` | Must change on first login |
 
-👨‍💻 Author
-Ayush Sawhney
+---
+
+## 🎨 UI Theme
+
+- Dark background: `#070711`
+- Primary accent: Cyan/Teal (`#22d3ee`, `#0891b2`)
+- Cards: Glassmorphism with subtle borders
+- Progress bars: Gradient cyan
+- Status badges: Color-coded (green, yellow, red, purple)
+
+---
+
+## 📸 Screenshots
+
+| Page | Screenshot |
+|---|---|
+| Home | `Screenshots/Home_page.png` |
+| Candidate Database (1) | `Screenshots/Candidate_information_1.png` |
+| Candidate Database (2) | `Screenshots/Candidate_information_2.png` |
+| JD Matching — Input | `Screenshots/JD_Matching_1.png` |
+| JD Matching — Results | `Screenshots/JD_Matching_2.png` |
+| JD Matching — Results (cont.) | `Screenshots/JD_Matching_3.png` |
+| Candidate Ranking Table | `Screenshots/Candidate_Ranking.png` |
+
+> Note: these screenshots are from an earlier single-page version of the app. Consider refreshing them to show the current multi-page flow (public Home/Apply/Track and the logged-in Dashboard/Applications/Admin views).
+
+---
+
+## 📦 Dependencies
+
+See `requirements.txt` for the full list. Key packages:
+
+- `streamlit` — Frontend UI
+- `fastapi` + `uvicorn` — Backend API
+- `spacy` + `en_core_web_lg` — NLP processing
+- `bcrypt` — Password hashing
+- `pdfplumber` — PDF text extraction
+- `python-docx` — DOCX text extraction
+- `pandas` — Data tables
+- `requests` — HTTP calls
+- `python-dotenv` — Environment variables
+
+---
+
+## 🌿 Git Branches
+
+| Branch | Description |
+|---|---|
+| `main` | Current stable version with full workflow |
+| `workflow-redesign` | Merged — public apply flow + company dashboard |
+| `navigation-redesign` | Merged — role-based sidebar with `st.navigation` |
+
+---
+
+## 👨‍💻 Author
+
+**Ayush Sawhney**
 B.Tech Computer Science Engineering — Amity University, Noida
-GitHub: https://github.com/Ayush06-coder
+GitHub: [@Ayush06-coder](https://github.com/Ayush06-coder)
 
-📌 Project Status
+---
+
+## 📌 Project Status
+
 🟢 Active Development — Internship Project
 
 Built with Python · FastAPI · Streamlit · spaCy · SQLite · Bcrypt
