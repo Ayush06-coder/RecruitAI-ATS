@@ -21,12 +21,8 @@ job_title = st.session_state.get("apply_job_title", "")
 # ---------------- HEADER ----------------
 
 st.markdown(f"""
-<div class="hero">
-    <h1>📤 Apply for {job_title}</h1>
-    <p class="hero-subtitle">
-        Fill in your details and upload your resume to apply
-    </p>
-</div>
+<h2 style="color: #5eead4;">📤 Apply for {job_title}</h2>
+<p>Fill in your details and upload your resume to apply</p>
 """, unsafe_allow_html=True)
 
 if st.button("← Back to Jobs"):
@@ -41,19 +37,19 @@ if "application_submitted" not in st.session_state:
 
 if not st.session_state["application_submitted"]:
 
-    st.markdown('<div class="card-title" style="font-size:1.1rem">👤 Your Information</div>', unsafe_allow_html=True)
+    st.markdown('<h4 style="color: #5eead4;">👤 Your Information</h4>', unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        candidate_name = st.text_input("Full Name *", placeholder="e.g. Rahul Sharma")
+        candidate_name = st.text_input("Full Name *", placeholder="e.g. John Doe")
     with col2:
-        candidate_email = st.text_input("Email Address *", placeholder="e.g. rahul@gmail.com")
+        candidate_email = st.text_input("Email Address *", placeholder="e.g. name@email.com")
     with col3:
-        candidate_phone = st.text_input("Phone Number *", placeholder="e.g. 9889076543")
+        candidate_phone = st.text_input("Phone Number *", placeholder="e.g. +91 98765 43210")
 
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown('<div class="card-title" style="font-size:1.1rem">📄 Upload Resume</div>', unsafe_allow_html=True)
+    st.markdown('<h4 style="color: #5eead4;">📄 Upload Resume</h4>', unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
 
     uploaded_file = st.file_uploader(
@@ -91,16 +87,16 @@ if not st.session_state["application_submitted"]:
                         }
                     )
 
-                if response.status_code == 200:
-                    data = response.json()
-                    if "error" in data:
-                        st.error(f"❌ {data['error']}")
+                    if response.status_code == 200:
+                        data = response.json()
+                        if "error" in data:
+                            st.error(f"❌ {data['error']}")
+                        else:
+                            st.session_state["application_result"] = data
+                            st.session_state["application_submitted"] = True
+                            st.rerun()
                     else:
-                        st.session_state["application_result"] = data
-                        st.session_state["application_submitted"] = True
-                        st.rerun()
-                else:
-                    st.error("Something went wrong. Please try again.")
+                        st.error("Something went wrong. Please try again.")
 
 # ---------------- SUCCESS PAGE ----------------
 
@@ -113,33 +109,24 @@ else:
     tracking_url = f"http://localhost:8501/Track?email={result.get('email', '')}"
 
     st.markdown(f"""
-    <div class="card" style="border-color:#0891b2; margin-top:1rem">
-        <div class="card-title">🔗 Track Your Application</div>
-        <p style="color:#a0aec0; font-size:0.9rem; margin:0.5rem 0">
-            Bookmark this link to check your application status anytime:
-        </p>
-        <div style="background:#040e14; border:1px solid #0e3a45;
-                    border-radius:8px; padding:0.8rem; margin-top:0.5rem;
-                    font-family:monospace; color:#22d3ee; font-size:0.9rem;
-                    word-break:break-all">
+    <div style="background-color: #0f2a2e; padding: 20px; border-radius: 12px; border: 1px solid #1e3a3f; margin-bottom: 20px;">
+        <h4 style="color: #5eead4; margin-top: 0;">🔗 Track Your Application</h4>
+        <p>Bookmark this link to check your application status anytime:</p>
+        <div style="background-color: #0a1f23; padding: 12px; border-radius: 8px; font-family: monospace; color: #5eead4;">
             {tracking_url}
         </div>
-        <p style="color:#64748b; font-size:0.8rem; margin-top:0.5rem">
-            💡 Save this link — you will need your email to track your status
-        </p>
+        <p style="margin-bottom: 0; color: #94a3b8;"><small>💡 Save this link — you will need your email to track your status</small></p>
     </div>
     """, unsafe_allow_html=True)
 
     st.markdown(f"""
-    <div class="card" style="border-color:#10b981; text-align:center; padding:2rem">
-        <div style="font-size:2rem">🎉</div>
-        <div style="font-size:1.3rem; font-weight:700; color:#e2e8f0; margin-top:0.5rem">
-            Thank you, {result.get('name', '')}!
-        </div>
-        <div style="color:#64748b; margin-top:0.5rem">
-            Your application for <strong style="color:#22d3ee">{job_title}</strong>
+    <div style="text-align: center; padding: 30px; background-color: #0f2a2e; border-radius: 12px; border: 1px solid #1e3a3f;">
+        <div style="font-size: 40px; margin-bottom: 10px;">🎉</div>
+        <h3 style="color: #ffffff; margin-bottom: 10px;">Thank you, {result.get('name', '')}!</h3>
+        <p style="color: #94a3b8; margin-bottom: 0;">
+            Your application for <strong style="color: #5eead4;">{job_title}</strong> 
             has been received. Our team will review it shortly.
-        </div>
+        </p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -148,30 +135,30 @@ else:
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Overall Match</div>
-            <div class="metric-value">{result.get('match_score', 0)}%</div>
+        <div style="text-align: center; padding: 15px; background-color: #0f2a2e; border-radius: 8px;">
+            <p style="color: #94a3b8; font-size: 12px; margin-bottom: 5px;">OVERALL MATCH</p>
+            <h2 style="color: #5eead4; margin: 0;">{result.get('match_score', 0)}%</h2>
         </div>
         """, unsafe_allow_html=True)
     with col2:
         st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Skills Match</div>
-            <div class="metric-value">{result.get('skills_score', 0)}%</div>
+        <div style="text-align: center; padding: 15px; background-color: #0f2a2e; border-radius: 8px;">
+            <p style="color: #94a3b8; font-size: 12px; margin-bottom: 5px;">SKILLS MATCH</p>
+            <h2 style="color: #5eead4; margin: 0;">{result.get('skills_score', 0)}%</h2>
         </div>
         """, unsafe_allow_html=True)
     with col3:
         st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Experience</div>
-            <div class="metric-value">{result.get('experience_score', 0)}%</div>
+        <div style="text-align: center; padding: 15px; background-color: #0f2a2e; border-radius: 8px;">
+            <p style="color: #94a3b8; font-size: 12px; margin-bottom: 5px;">EXPERIENCE</p>
+            <h2 style="color: #5eead4; margin: 0;">{result.get('experience_score', 0)}%</h2>
         </div>
         """, unsafe_allow_html=True)
     with col4:
         st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Certifications</div>
-            <div class="metric-value">{result.get('certifications_score', 0)}%</div>
+        <div style="text-align: center; padding: 15px; background-color: #0f2a2e; border-radius: 8px;">
+            <p style="color: #94a3b8; font-size: 12px; margin-bottom: 5px;">CERTIFICATIONS</p>
+            <h2 style="color: #5eead4; margin: 0;">{result.get('certifications_score', 0)}%</h2>
         </div>
         """, unsafe_allow_html=True)
 

@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import re
 import requests
 from auth import (
     enforce_access,
@@ -13,6 +14,15 @@ from styles import inject_css
 
 st.set_page_config(page_title="Admin Panel", page_icon="🛠️", layout="wide")
 inject_css()
+
+
+def clean_preview(text, length=150):
+    """Strip markdown syntax and return a clean, plain-text preview snippet."""
+    plain = re.sub(r"#+\s*", "", text)                 # remove ## headers
+    plain = re.sub(r"\*\*(.*?)\*\*", r"\1", plain)      # remove **bold**
+    plain = re.sub(r"^-\s*", "", plain, flags=re.MULTILINE)  # remove bullet dashes
+    plain = " ".join(plain.split())                     # collapse newlines/whitespace
+    return plain[:length] + ("..." if len(plain) > length else "")
 
 enforce_access(admin_only=True)
 render_sidebar()
@@ -220,10 +230,13 @@ with tab2:
                         <span class="badge {status_color}">{status_label}</span>
                     </div>
                     <div style="margin-top:0.8rem; color:#a0aec0; font-size:0.85rem">
-                        {job['description'][:150]}{'...' if len(job['description']) > 150 else ''}
+                        {clean_preview(job['description'])}
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
+
+                with st.expander("View full job description", expanded=False):
+                    st.markdown(job["description"])
 
                 col_open, col_close, col_delete = st.columns([1, 1, 4])
 

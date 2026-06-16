@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(__file__))
 
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
@@ -95,14 +95,14 @@ def generate_job_description(title: str, department: str, experience: str, skill
     """Generate a professional job description based on inputs."""
     skill_list = [s.strip() for s in skills.split(",") if s.strip()]
     cert_list = [c.strip() for c in certifications.split(",") if c.strip()]
-    
+
     skills_bullet = "\n".join([f"- {skill}" for skill in skill_list])
-    
+
     certs_section = ""
     if cert_list and cert_list[0]:
         certs_bullet = "\n".join([f"- {cert}" for cert in cert_list])
         certs_section = f"\n**Required Certifications:**\n{certs_bullet}\n"
-    
+
     return f"""## About the Role
 
 We are looking for a talented **{title}** to join our **{department}** team. The ideal candidate will have **{experience}** of relevant experience and a passion for building innovative solutions.
@@ -147,7 +147,6 @@ Submit your resume through our portal. Our AI-powered system will match your pro
 def home():
     return {"message": "Resume Parser API is running"}
 
-
 @app.post("/upload")
 async def upload_resume(file: UploadFile = File(...)):
 
@@ -187,7 +186,6 @@ async def upload_resume(file: UploadFile = File(...)):
         "certifications": certifications,
     }
 
-
 @app.get("/candidates")
 def get_candidates(search: str = ""):
     if search:
@@ -210,7 +208,6 @@ def get_candidates(search: str = ""):
 
     return {"candidates": result}
 
-
 @app.get("/candidate/{candidate_id}")
 def get_candidate(candidate_id: int):
     candidates = get_all_candidates()
@@ -228,7 +225,6 @@ def get_candidate(candidate_id: int):
             }
 
     return {"error": "Candidate not found"}
-
 
 @app.post("/match")
 def match_candidates(request: MatchRequest):
@@ -260,7 +256,6 @@ def match_candidates(request: MatchRequest):
 
     results = sorted(results, key=lambda x: x["score"], reverse=True)
     return {"results": results}
-
 
 @app.delete("/candidate/{candidate_id}")
 def delete_candidate_by_id(candidate_id: int):
@@ -294,7 +289,6 @@ def post_job(job: JobRequest):
     )
     return {"message": "Job posted successfully"}
 
-
 @app.get("/jobs")
 def list_jobs():
     jobs = get_all_jobs()
@@ -315,7 +309,6 @@ def list_jobs():
         })
     return {"jobs": result}
 
-
 @app.get("/jobs/{job_id}")
 def get_job(job_id: int):
     job = get_job_by_id(job_id)
@@ -335,21 +328,24 @@ def get_job(job_id: int):
         "posted_by": job[10]
     }
 
-
 @app.put("/jobs/{job_id}")
 def update_job(job_id: int, request: JobStatusRequest):
     update_job_status(job_id, request.status)
     return {"message": "Job status updated"}
-
 
 @app.delete("/jobs/{job_id}")
 def remove_job(job_id: int):
     delete_job(job_id)
     return {"message": "Job deleted"}
 
-
 @app.post("/jobs/{job_id}/apply")
-async def apply_to_job(job_id: int, file: UploadFile = File(...)):
+async def apply_to_job(
+    job_id: int,
+    file: UploadFile = File(...),
+    candidate_name: str = Form(""),
+    candidate_email: str = Form(""),
+    candidate_phone: str = Form("")
+):
 
     job = get_job_by_id(job_id)
     if not job:
@@ -369,12 +365,20 @@ async def apply_to_job(job_id: int, file: UploadFile = File(...)):
     else:
         return {"error": "Unsupported format"}
 
-    # Extract candidate info
-    name = extract_name(resume_text)
-    email = extract_email(resume_text)
+    # Extract info from resume
+    parsed_name = extract_name(resume_text)
+    parsed_email = extract_email(resume_text)
+    parsed_phone = extract_phone(resume_text)
     skills = extract_skills(resume_text)
-    certifications = extract_certifications(resume_text)
+    education = extract_education(resume_text)
     experience = extract_experience(resume_text)
+    certifications = extract_certifications(resume_text)
+
+    # Use form data if provided, otherwise fallback to parsed data
+    name = candidate_name.strip() if candidate_name.strip() else parsed_name
+    email = candidate_email.strip() if candidate_email.strip() else parsed_email
+    phone = candidate_phone.strip() if candidate_phone.strip() else parsed_phone
+
     save_candidate(
         name, email, phone,
         ", ".join(skills), education,
@@ -421,7 +425,6 @@ async def apply_to_job(job_id: int, file: UploadFile = File(...)):
         "missing_skills": result["missing_skills"]
     }
 
-
 @app.get("/jobs/{job_id}/applications")
 def get_job_applications(job_id: int):
     applications = get_applications_by_job(job_id)
@@ -442,7 +445,6 @@ def get_job_applications(job_id: int):
             "applied_date": a[11]
         })
     return {"applications": result}
-
 
 @app.put("/applications/{application_id}")
 def update_status(application_id: int, request: ApplicationStatusRequest):

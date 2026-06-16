@@ -104,20 +104,19 @@ else:
                 </div>
                 <span class="badge badge-green">🟢 Open</span>
             </div>
-            <div style="margin-top:0.8rem; color:#a0aec0;
-                        font-size:0.9rem; line-height:1.6">
-                {job['description'][:250]}{'...' if len(job['description']) > 250 else ''}
-            </div>
             <div style="margin-top:1rem">
                 <div style="color:#64748b; font-size:0.75rem;
                             margin-bottom:0.4rem; text-transform:uppercase;
                             letter-spacing:0.05em">Required Skills</div>
                 {skills_html}
             </div>
-            {'<<div style="margin-top:0.8rem"><div style="color:#64748b; font-size:0.75rem; margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.05em">Required Certifications</div>' + certs_html + '</div>' if certs_html else ''}
+            {'<div style="margin-top:0.8rem"><div style="color:#64748b; font-size:0.75rem; margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.05em">Required Certifications</div>' + certs_html + '</div>' if certs_html else ''}
         </div>
         """, unsafe_allow_html=True)
-        
+
+        with st.expander("View full job description"):
+            st.markdown(job["description"])
+
         if st.button(f"Apply for {job['title']}", key=f"apply_{job['id']}"):
             st.session_state["apply_job_id"] = job["id"]
             st.session_state["apply_job_title"] = job["title"]

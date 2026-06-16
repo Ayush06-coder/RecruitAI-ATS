@@ -4,25 +4,17 @@ import spacy
 nlp = spacy.load("en_core_web_lg")
 
 def extract_email(text):
-
     pattern = r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
-
     match = re.search(pattern, text)
-
     if match:
         return match.group()
-
     return "Email not found"
 
 def extract_phone(text):
-
     pattern = r"\+?\d[\d\s\-]{8,15}"
-
     match = re.search(pattern, text)
-
     if match:
         return match.group()
-    
     return "Phone number not found"
 
 def extract_name(text):
@@ -37,11 +29,15 @@ def extract_name(text):
     job_titles = {
         "junior", "senior", "developer", "engineer", "analyst",
         "manager", "designer", "lead", "frontend", "backend",
-        "fullstack", "full-stack", "intern", "consultant",
-        "architect", "executive", "associate", "trainee",
-        "assistant", "scientist", "officer", "head"
+        "fullstack", "full-stack", "full", "stack", "software",
+        "intern", "consultant", "architect", "executive",
+        "associate", "trainee", "assistant", "scientist",
+        "officer", "head", "director", "specialist", "coordinator",
+        "administrator", "representative", "supervisor", "technician",
+        "operator", "consultant", "freelance", "contractor"
     }
 
+    # Strategy 1: Look for two consecutive uppercase single-word lines (common resume format)
     for i in range(len(lines[:10]) - 1):
         w1, w2 = lines[i], lines[i + 1]
 
@@ -51,9 +47,12 @@ def extract_name(text):
             and len(w2.split()) == 1
             and w1.title() not in headings
             and w2.title() not in headings
+            and w1.lower() not in job_titles
+            and w2.lower() not in job_titles
         ):
             return f"{w1} {w2}".title()
 
+    # Strategy 2: Use spaCy NER with strict job title filtering
     text_for_nlp = " ".join(
         line.title() if line.isupper() else line
         for line in lines[:10]
@@ -63,19 +62,28 @@ def extract_name(text):
 
     for ent in doc.ents:
         if ent.label_ == "PERSON":
-
             words = ent.text.split()
 
-            # Stop at job title words
+            # Stop at job title words - STRICT filtering
             clean_words = []
             for word in words:
-                if word.lower() in job_titles:
+                # Check if word (or stripped version) is a job title
+                word_clean = word.strip().lower().rstrip(",.:;-|")
+                if word_clean in job_titles:
+                    break
+                # Also check if word contains job title as substring
+                if any(jt in word_clean for jt in ["developer", "engineer", "analyst", "manager", "designer", "consultant", "architect", "intern", "trainee", "assistant"]):
                     break
                 clean_words.append(word)
 
-            # Only return if at least 2 clean words remain
+            # Only return if at least 2 clean words remain (First + Last name)
             if len(clean_words) >= 2:
-                return " ".join(clean_words)
+                # Additional validation: check if result looks like a name
+                result = " ".join(clean_words)
+                # Make sure it doesn't end with a job title word
+                last_word = clean_words[-1].lower().rstrip(",.:;-|")
+                if last_word not in job_titles:
+                    return result
 
     return "Name not found"
 
@@ -115,33 +123,33 @@ UNIVERSITY_KEYWORDS = [
 
 def extract_education(text):
     lines = [line.strip() for line in text.split("\n") if line.strip()]
-    
+
     section_keywords = ["education", "qualification", "academic"]
-    stop_keywords = ["experience", "skills", "projects", 
+    stop_keywords = ["experience", "skills", "projects",
                      "certifications", "summary", "objective"]
     keywords = EDUCATION_KEYWORDS + UNIVERSITY_KEYWORDS
-    
+
     education_lines = []
     in_education_section = False
-    
+
     for line in lines:
         line_lower = line.lower()
-        
+
         if any(kw in line_lower for kw in section_keywords):
             in_education_section = True
             continue
-        
+
         if in_education_section and any(kw in line_lower for kw in stop_keywords):
             break
-        
+
         if in_education_section:
             education_lines.append(line)
-    
+
     found_education = [
         line for line in education_lines
         if any(kw in line.lower() for kw in keywords)
     ]
-    
+
     return found_education if found_education else ["Education not found"]
 
 ROLE_KEYWORDS = [
@@ -158,37 +166,37 @@ COMPANY_KEYWORDS = [
 
 def extract_experience(text):
     lines = [line.strip() for line in text.split("\n") if line.strip()]
-    
+
     section_keywords = ["experience", "employment", "work history", "internship"]
-    stop_keywords = ["education", "skills", "projects", "certifications", 
+    stop_keywords = ["education", "skills", "projects", "certifications",
                      "achievements", "objective", "summary"]
-    
+
     experience_lines = []
     in_experience_section = False
-    
+
     for line in lines:
         line_lower = line.lower()
-        
+
         if any(kw in line_lower for kw in section_keywords):
             in_experience_section = True
             continue
-        
+
         if in_experience_section and any(kw in line_lower for kw in stop_keywords):
             break
-        
+
         if in_experience_section:
             experience_lines.append(line)
-    
+
     roles = []
     companies = []
-    
+
     for line in experience_lines:
         line_lower = line.lower()
         if any(kw in line_lower for kw in ROLE_KEYWORDS) and line not in roles:
             roles.append(line)
         elif any(kw in line_lower for kw in COMPANY_KEYWORDS) and line not in companies:
             companies.append(line)
-    
+
     result = roles + companies
     return result if result else ["Experience not found"]
 
@@ -213,11 +221,9 @@ def extract_certifications(text):
             found_certifications.append(cert)
     return found_certifications if found_certifications else ["No certifications found"]
 
-
 def _whole_word_match(term, text):
     pattern = r'\b' + re.escape(term) + r'\b'
     return bool(re.search(pattern, text, re.IGNORECASE))
-
 
 def match_candidate(
     candidate_skills,
@@ -242,7 +248,7 @@ def match_candidate(
 
     # Experience: JD skills + job title words vs candidate experience text
     job_title_words = [
-        w for w in re.split(r"[\s,/\-]+", job_title.strip())
+        w for w in re.split(r"[\s,/-]+", job_title.strip())
         if len(w) >= 2
     ]
     experience_keywords = list(dict.fromkeys(jd_skills + job_title_words))
