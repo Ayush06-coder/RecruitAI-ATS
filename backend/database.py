@@ -50,7 +50,7 @@ def init_db():
     admin_exists = cursor.fetchone()
     if not admin_exists:
         admin_password_hash = bcrypt.hashpw(
-            "admin12345".encode("utf-8"),
+            "RecruitAI@2026".encode("utf-8"),
             bcrypt.gensalt()
         ).decode("utf-8")
         cursor.execute("""
@@ -60,7 +60,7 @@ def init_db():
             "admin",
             admin_password_hash,
             "admin",
-            0,
+            1,
             0,
             None,
             1,

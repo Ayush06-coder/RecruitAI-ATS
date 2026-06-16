@@ -4,4 +4,4 @@ database/resumes.db
 venv/
 __pycache__/
 
-resumes/
+resumes/.env

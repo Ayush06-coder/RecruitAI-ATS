@@ -52,7 +52,11 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+    "http://localhost:8501",
+    # Add your deployed URLs here later:
+    # "https://your-app.streamlit.app",
+],
     allow_methods=["*"],
     allow_headers=["*"]
 )
