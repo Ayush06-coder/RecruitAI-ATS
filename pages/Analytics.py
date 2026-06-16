@@ -11,7 +11,7 @@ inject_css()
 enforce_access()
 render_sidebar()
 
-API_URL = "http://localhost:8000"
+from config import API_URL
 
 st.markdown("""
 <div class="hero">

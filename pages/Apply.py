@@ -5,7 +5,7 @@ from styles import inject_css
 st.set_page_config(page_title="Apply", page_icon="📤", layout="wide")
 inject_css()
 
-API_URL = "http://localhost:8000"
+from config import API_URL
 
 # ---------------- CHECK JOB SELECTED ----------------
 

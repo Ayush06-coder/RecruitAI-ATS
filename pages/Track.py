@@ -5,7 +5,7 @@ from styles import inject_css
 st.set_page_config(page_title="Track Application", page_icon="🔍", layout="wide")
 inject_css()
 
-API_URL = "http://localhost:8000"
+from config import API_URL
 
 st.markdown("""
 <div class="hero">

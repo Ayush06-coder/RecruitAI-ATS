@@ -27,7 +27,7 @@ def clean_preview(text, length=150):
 enforce_access(admin_only=True)
 render_sidebar()
 
-API_URL = "http://localhost:8000"
+from config import API_URL
 
 # Initialize session state for generated JD
 if "generated_jd" not in st.session_state:
