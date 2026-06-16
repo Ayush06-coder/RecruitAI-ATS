@@ -1,17 +1,19 @@
-# 📄 Intelligent Resume Parser using NLP
+# 📄 RecruitAI — Intelligent Resume Parser & Hiring Platform
 
-> An AI-powered recruitment tool that automatically parses resumes, extracts candidate information using NLP, and ranks candidates against job descriptions.
+&gt; An AI-powered recruitment platform with role-based access. Candidates apply to jobs without login. Recruiters login to manage applications, rank candidates, and post jobs with auto-generated JDs.
 
 ---
 
 ## 🧠 What This Project Does
 
-Companies receive hundreds of resumes for a single job opening. Going through each one manually is slow, inconsistent, and hard to scale. This system solves that problem by:
+Companies receive hundreds of resumes for each job posting. Manual screening is slow and biased. This platform solves that by:
 
-- Automatically reading resumes in PDF and DOCX formats
-- Extracting all key candidate information using NLP
-- Storing candidates in a searchable database
-- Matching and ranking candidates against any job description
+- **Public Job Board** — Candidates view open jobs and apply without any login
+- **AI Resume Parsing** — Automatically extracts name, email, phone, skills, education, experience, certifications from PDF/DOCX
+- **Smart Matching** — Calculates match scores (skills + experience + certifications) against job requirements
+- **Candidate Ranking** — Ranks applicants with medals and progress bars
+- **Auto JD Generation** — Admin generates professional job descriptions with one click
+- **Role-Based Access** — Three user types: Candidate (public), Recruiter (user), Admin
 
 ---
 
@@ -19,14 +21,16 @@ Companies receive hundreds of resumes for a single job opening. Going through ea
 
 | Feature | Description |
 |---|---|
-| 📤 Resume Upload | Upload PDF or DOCX resumes |
-| 🧠 NLP Extraction | Extract Name, Email, Phone, Skills, Education, Experience |
-| 💾 Database Storage | All candidates saved in SQLite with duplicate prevention |
-| 🔍 Search & Filter | Search by name, email, or skill — filter by specific skill |
-| 🎯 JD Matching | Compare candidate skills against any job description |
-| 🏆 Candidate Ranking | Rank all candidates by match score with medals |
-| 🌐 REST API | Full FastAPI backend with auto-generated documentation |
-| 📱 Multi-Page UI | Clean Streamlit frontend with page-based navigation |
+| 📤 Public Apply | Candidates apply to jobs without login |
+| 🧠 NLP Extraction | spaCy-powered extraction of all candidate details |
+| 🎯 AI Match Scoring | Skills + Experience + Certifications breakdown |
+| 🏆 Ranked Applications | Top 3 get medals, progress bars for all |
+| 💼 Job Posting | Admin posts jobs with auto-generated descriptions |
+| ✨ Auto JD Generation | One-click professional job description generation |
+| 🔐 Authentication | Admin vs User roles with password management |
+| 📊 Analytics Dashboard | Charts for skills, education, experience distribution |
+| 👥 Candidate Database | Search, filter, and admin-only delete |
+| 🔍 Track Application | Candidates track status via email |
 
 ---
 
@@ -34,156 +38,156 @@ Companies receive hundreds of resumes for a single job opening. Going through ea
 
 | Layer | Technology |
 |---|---|
-| Frontend | Streamlit (Multi-page) |
+| Frontend | Streamlit (Multi-page + st.navigation) |
 | Backend | FastAPI + Uvicorn |
 | NLP | spaCy (en_core_web_lg) + Regex |
 | Database | SQLite |
+| Auth | Bcrypt password hashing |
+| Styling | Custom CSS (Dark cyan/teal theme) |
 | Language | Python 3.10+ |
 
 ---
 
 ## 📁 Project Structure
+resume-parser-project/
+├── App.py                          ← Navigation controller + Home page content
+├── auth.py                         ← Login/logout, roles, password management
+├── styles.py                       ← Shared dark CSS (cyan/teal theme)
+├── config.py                       ← Centralized API URL configuration
+├── requirements.txt
+│
+├── backend/
+│   ├── main.py                     ← FastAPI endpoints (upload, match, jobs, applications, generate-jd)
+│   ├── parser.py                   ← PDF/DOCX text extraction
+│   ├── extractor.py                ← NLP: name, email, phone, skills, education, experience, certifications
+│   └── database.py                 ← SQLite: candidates, jobs, applications, users
+│
+├── database/
+│   └── resumes.db                  ← SQLite database
+│
+├── pages/
+│   ├── Home.py                     ← Public landing page with job listings
+│   ├── Apply.py                    ← Candidate application form (no login)
+│   ├── Track.py                    ← Track application by email (no login)
+│   ├── Login.py                    ← Company login page
+│   ├── Dashboard.py                ← Company overview after login
+│   ├── Applications.py             ← View applications per job, ranked by match
+│   ├── JD_Matching.py             ← Match candidates against JD
+│   ├── Analytics.py                ← Charts: skills, education, experience breakdown
+│   ├── Admin.py                    ← Admin only: users, jobs, applications
+│   ├── Candidates.py              ← View all candidates (search, filter, admin delete)
+│   └── Change_Password.py          ← Password change (first-time + optional)
+│
+└── resumes/                        ← Uploaded resume files
 
-| Path | Description |
-|---|---|
-| `App.py` | Home page — entry point |
-| `pages/1_Upload.py` | Upload and parse resumes |
-| `pages/2_Candidates.py` | Search and view all candidates |
-| `pages/3_JD_Matching.py` | Match and rank candidates |
-| `backend/main.py` | FastAPI REST API endpoints |
-| `backend/parser.py` | PDF/DOCX text extraction |
-| `backend/extractor.py` | NLP extraction functions |
-| `backend/database.py` | SQLite database operations |
-| `database/resumes.db` | SQLite database file |
-| `resumes/` | Uploaded resume files |
-| `Screenshots/` | Project screenshots |
-| `requirements.txt` | Python dependencies |
+---
+
+## 🔄 Workflow
+
+### Candidate Flow (No Login)
+1. Visits public landing page → sees open jobs
+2. Clicks "Apply" on a job → fills form + uploads resume
+3. Gets instant match score with breakdown
+4. Can track application status via email
+
+### Company Flow (Login Required)
+1. Admin/User logs in → sees Dashboard
+2. Dashboard shows metrics: Total Jobs, Candidates, Applications
+3. Applications page → select job → see ranked applicants
+4. Can shortlist, schedule interview, or reject
+5. JD Matching → paste JD → see ranked candidates
+6. Analytics → visual breakdown of all candidates
+7. Admin can post jobs, manage users, delete candidates
 
 ---
 
 ## ▶️ Running the Project
 
-Open **two separate terminals:**
+**Prerequisites:**
+```bash
+pip install -r requirements.txt
+python -m spacy download en_core_web_lg
 
-**Terminal 1 — FastAPI Backend:**
-
-```
+Open two separate terminals:
+Terminal 1 — FastAPI Backend:
 uvicorn backend.main:app --reload --port 8000
-```
-
-**Terminal 2 — Streamlit Frontend:**
-
-```
+Terminal 2 — Streamlit Frontend:
 streamlit run App.py
-```
 
-| Service | URL |
-|---|---|
-| Streamlit App | http://localhost:8501 |
-| FastAPI Docs | http://localhost:8000/docs |
+| Service       | URL                          |
+| ------------- | ---------------------------- |
+| Streamlit App | <http://localhost:8501>      |
+| FastAPI Docs  | <http://localhost:8000/docs> |
 
----
+🔌 API Endpoints
+| Method   | Endpoint                  | Description                              |
+| -------- | ------------------------- | ---------------------------------------- |
+| `GET`    | `/`                       | Health check                             |
+| `POST`   | `/upload`                 | Upload resume, parse and extract info    |
+| `GET`    | `/candidates`             | Fetch all candidates (optional ?search=) |
+| `DELETE` | `/candidates/{id}`        | Delete candidate (admin)                 |
+| `POST`   | `/match`                  | Match candidates against JD              |
+| `POST`   | `/generate-jd`            | Auto-generate job description            |
+| `POST`   | `/jobs`                   | Post new job                             |
+| `GET`    | `/jobs`                   | List all jobs                            |
+| `PUT`    | `/jobs/{id}`              | Update job status (open/closed)          |
+| `DELETE` | `/jobs/{id}`              | Delete job                               |
+| `POST`   | `/jobs/{id}/apply`        | Apply to job with resume                 |
+| `GET`    | `/jobs/{id}/applications` | Get applications for job                 |
+| `PUT`    | `/applications/{id}`      | Update application status                |
+| `GET`    | `/track/{email}`          | Track applications by email              |
 
-## 🔌 API Endpoints
+🔐 Default Credentials
+| Role  | Username             | Password         | Notes                      |
+| ----- | -------------------- | ---------------- | -------------------------- |
+| Admin | `admin`              | `RecruitAI@2026` | Must change on first login |
+| User  | Any created by admin | `ChangeMe@123`   | Must change on first login |
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/` | Health check — confirms API is running |
-| `POST` | `/upload` | Upload resume file, parse and extract all info |
-| `GET` | `/candidates` | Fetch all candidates from database |
-| `GET` | `/candidates?search=python` | Search candidates by name, email or skill |
-| `GET` | `/candidate/{id}` | Fetch one specific candidate by ID |
-| `POST` | `/match` | Match all candidates against a job description |
+🎨 UI Theme
+Dark background: #070711
+Primary accent: Cyan/Teal (#22d3ee, #0891b2)
+Cards: Glassmorphism with subtle borders
+Progress bars: Gradient cyan
+Status badges: Color-coded (green, yellow, red, purple)
 
----
+📸 Screenshots
+| Page         | Screenshot                     |
+| ------------ | ------------------------------ |
+| Landing Page | `Screenshots/Landing.png`      |
+| Apply Page   | `Screenshots/Apply.png`        |
+| Login Page   | `Screenshots/Login.png`        |
+| Dashboard    | `Screenshots/Dashboard.png`    |
+| Applications | `Screenshots/Applications.png` |
+| JD Matching  | `Screenshots/JD_Matching.png`  |
+| Analytics    | `Screenshots/Analytics.png`    |
+| Admin Panel  | `Screenshots/Admin.png`        |
+| Candidates   | `Screenshots/Candidates.png`   |
 
-## 📸 Screenshots
+📦 Dependencies
+See requirements.txt for full list. Key packages:
+streamlit — Frontend UI
+fastapi + uvicorn — Backend API
+spacy + en_core_web_lg — NLP processing
+bcrypt — Password hashing
+pdfplumber — PDF text extraction
+python-docx — DOCX text extraction
+pandas — Data tables
+requests — HTTP calls
+python-dotenv — Environment variables
 
-### 🏠 Home Page
-![Home Page](Screenshots/Home_page.png)
+🌿 Git Branches
+| Branch                | Description                                    |
+| --------------------- | ---------------------------------------------- |
+| `main`                | Current stable version with full workflow      |
+| `workflow-redesign`   | Merged — public apply flow + company dashboard |
+| `navigation-redesign` | Merged — role-based sidebar with st.navigation |
 
-### 👥 Candidate Database
-![Candidate Information 1](Screenshots/Candidate_information_1.png)
-![Candidate Information 2](Screenshots/Candidate_information_2.png)
-
-### 🎯 JD Matching
-![JD Matching 1](Screenshots/JD_Matching_1.png)
-![JD Matching 2](Screenshots/JD_Matching_2.png)
-![JD Matching 3](Screenshots/JD_Matching_3.png)
-
-### 🏆 Candidate Rankings
-![Candidate Ranking](Screenshots/Candidate_Ranking.png)
-
----
-
-## 🔍 How It Works
-
-1. User uploads resume in PDF or DOCX format
-2. FastAPI receives the file via the `/upload` endpoint
-3. `parser.py` extracts raw text from the file
-4. `extractor.py` runs NLP processing:
-   - **Name** — spaCy NLP + rule-based detection
-   - **Email** — Regex pattern matching
-   - **Phone** — Regex pattern matching
-   - **Skills** — Keyword matching with whole word regex
-   - **Education** — Section-based NLP parsing
-   - **Experience** — Section-based NLP parsing
-5. `database.py` saves the candidate to SQLite
-6. Streamlit displays the extracted information
-7. Recruiter pastes a Job Description
-8. `/match` endpoint compares candidate skills vs JD skills
-9. Candidates are ranked by match score, highest first
-
----
-
-## 📦 Dependencies
-
-| Package | Purpose |
-|---|---|
-| `streamlit` | Frontend UI |
-| `fastapi` | REST API backend |
-| `uvicorn` | ASGI web server |
-| `python-multipart` | File upload handling |
-| `pdfplumber` | PDF text extraction |
-| `python-docx` | DOCX text extraction |
-| `spacy` | NLP processing |
-| `requests` | HTTP calls from frontend to backend |
-| `pandas` | Data display in tables |
-
----
-
-## 🌿 Git Branches
-
-| Branch | Description |
-|---|---|
-| `main` | Stable production branch |
-| `fastapi-backend` | FastAPI + multi-page routing (merged into main) |
-
----
-
-## 🚀 Future Scope
-
-- [ ] Deploy on Streamlit Cloud
-- [ ] Resume Score Card — score resumes out of 100
-- [ ] Skills Gap Analysis — visual gap between candidate and JD
-- [ ] Resume vs Resume comparison
-- [ ] Email notifications for top candidates
-
----
-
-## 👨‍💻 Author
-
-**Ayush Sawhney**
+👨‍💻 Author
+Ayush Sawhney
 B.Tech Computer Science Engineering — Amity University, Noida
+GitHub: https://github.com/Ayush06-coder
 
-GitHub : https://github.com/Ayush06-coder
+📌 Project Status
+🟢 Active Development — Internship Project
 
----
-
-## 📌 Project Status
-
-> 🟢 **Active Development** — Internship Project at Team Computers
-
----
-
-*Built with Python · FastAPI · Streamlit · spaCy · SQLite*
+Built with Python · FastAPI · Streamlit · spaCy · SQLite · Bcrypt
