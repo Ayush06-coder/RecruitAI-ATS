@@ -375,6 +375,12 @@ async def apply_to_job(job_id: int, file: UploadFile = File(...)):
     skills = extract_skills(resume_text)
     certifications = extract_certifications(resume_text)
     experience = extract_experience(resume_text)
+    save_candidate(
+        name, email, phone,
+        ", ".join(skills), education,
+        ", ".join(experience),
+        ", ".join(certifications)
+    )
 
     # Calculate match against job
     required_skills = job[6]

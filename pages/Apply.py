@@ -46,11 +46,11 @@ if not st.session_state["application_submitted"]:
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        candidate_name = st.text_input("Full Name *", placeholder="e.g. Ayush Sawhney")
+        candidate_name = st.text_input("Full Name *", placeholder="e.g. Rahul Sharma")
     with col2:
-        candidate_email = st.text_input("Email Address *", placeholder="e.g. ayush@gmail.com")
+        candidate_email = st.text_input("Email Address *", placeholder="e.g. rahul@gmail.com")
     with col3:
-        candidate_phone = st.text_input("Phone Number *", placeholder="e.g. 9810469256")
+        candidate_phone = st.text_input("Phone Number *", placeholder="e.g. 9889076543")
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="card-title" style="font-size:1.1rem">📄 Upload Resume</div>', unsafe_allow_html=True)

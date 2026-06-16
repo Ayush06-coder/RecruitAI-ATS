@@ -73,87 +73,97 @@ if st.button("🔍 Track Applications", use_container_width=False):
                         else "#ef4444"
                     )
 
-                    st.markdown(f"""
-                    <div class="card">
-                        <div style="display:flex; justify-content:space-between;
-                                    align-items:flex-start; flex-wrap:wrap; gap:1rem">
-                            <div>
-                                <div style="font-size:1.2rem; font-weight:700;
-                                            color:#e2e8f0">{app['job_title']}</div>
-                                <div style="color:#64748b; font-size:0.85rem;
-                                            margin-top:0.3rem">
-                                    🏢 {app['department']} &nbsp;|&nbsp;
-                                    📍 {app['location']} &nbsp;|&nbsp;
-                                    📅 Applied: {app['applied_date']}
-                                </div>
-                            </div>
-                            <span class="badge {badge_class}">
-                                {status_icon} {app['status']}
-                            </span>
-                        </div>
+                    # Build HTML using string concatenation to avoid f-string issues
+                    job_title = app.get('job_title', 'Unknown Job')
+                    department = app.get('department', 'N/A')
+                    location = app.get('location', 'N/A')
+                    applied_date = app.get('applied_date', 'N/A')
+                    status = app.get('status', 'Applied')
+                    match_score = app.get('match_score', 0)
+                    skills_score = app.get('skills_score', 0)
+                    experience_score = app.get('experience_score', 0)
+                    certifications_score = app.get('certifications_score', 0)
 
-                        <div style="margin-top:1.2rem">
-                            <div style="display:flex; gap:2rem;
-                                        flex-wrap:wrap; align-items:center">
-                                <div>
-                                    <div style="color:#64748b; font-size:0.75rem;
-                                                text-transform:uppercase;
-                                                letter-spacing:0.05em">
-                                        Overall Match
-                                    </div>
-                                    <div style="font-size:1.5rem; font-weight:700;
-                                                color:{score_color}">
-                                        {app['match_score']}%
-                                    </div>
-                                </div>
-                                <div>
-                                    <div style="color:#64748b; font-size:0.75rem;
-                                                text-transform:uppercase;
-                                                letter-spacing:0.05em">Skills</div>
-                                    <div style="color:#e2e8f0; font-weight:600">
-                                        {app['skills_score']}%
-                                    </div>
-                                </div>
-                                <div>
-                                    <div style="color:#64748b; font-size:0.75rem;
-                                                text-transform:uppercase;
-                                                letter-spacing:0.05em">Experience</div>
-                                    <div style="color:#e2e8f0; font-weight:600">
-                                        {app['experience_score']}%
-                                    </div>
-                                </div>
-                                <div>
-                                    <div style="color:#64748b; font-size:0.75rem;
-                                                text-transform:uppercase;
-                                                letter-spacing:0.05em">Certifications</div>
-                                    <div style="color:#e2e8f0; font-weight:600">
-                                        {app['certifications_score']}%
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    html = (
+                        '<div class="card">'
+                        '  <div style="display:flex; justify-content:space-between;'
+                        '              align-items:flex-start; flex-wrap:wrap; gap:1rem">'
+                        '    <div>'
+                        '      <div style="font-size:1.2rem; font-weight:700;'
+                        '                  color:#e2e8f0">' + str(job_title) + '</div>'
+                        '      <div style="color:#64748b; font-size:0.85rem;'
+                        '                  margin-top:0.3rem">'
+                        '        🏢 ' + str(department) + ' &nbsp;|&nbsp;'
+                        '        📍 ' + str(location) + ' &nbsp;|&nbsp;'
+                        '        📅 Applied: ' + str(applied_date) + ''
+                        '      </div>'
+                        '    </div>'
+                        '    <span class="badge ' + str(badge_class) + '">'
+                        '      ' + str(status_icon) + ' ' + str(status) + ''
+                        '    </span>'
+                        '  </div>'
+                        '  <div style="margin-top:1.2rem">'
+                        '    <div style="display:flex; gap:2rem;'
+                        '                flex-wrap:wrap; align-items:center">'
+                        '      <div>'
+                        '        <div style="color:#64748b; font-size:0.75rem;'
+                        '                    text-transform:uppercase;'
+                        '                    letter-spacing:0.05em">'
+                        '          Overall Match'
+                        '        </div>'
+                        '        <div style="font-size:1.5rem; font-weight:700;'
+                        '                    color:' + str(score_color) + '">'
+                        '          ' + str(match_score) + '%'
+                        '        </div>'
+                        '      </div>'
+                        '      <div>'
+                        '        <div style="color:#64748b; font-size:0.75rem;'
+                        '                    text-transform:uppercase;'
+                        '                    letter-spacing:0.05em">Skills</div>'
+                        '        <div style="color:#e2e8f0; font-weight:600">'
+                        '          ' + str(skills_score) + '%'
+                        '        </div>'
+                        '      </div>'
+                        '      <div>'
+                        '        <div style="color:#64748b; font-size:0.75rem;'
+                        '                    text-transform:uppercase;'
+                        '                    letter-spacing:0.05em">Experience</div>'
+                        '        <div style="color:#e2e8f0; font-weight:600">'
+                        '          ' + str(experience_score) + '%'
+                        '        </div>'
+                        '      </div>'
+                        '      <div>'
+                        '        <div style="color:#64748b; font-size:0.75rem;'
+                        '                    text-transform:uppercase;'
+                        '                    letter-spacing:0.05em">Certifications</div>'
+                        '        <div style="color:#e2e8f0; font-weight:600">'
+                        '          ' + str(certifications_score) + '%'
+                        '        </div>'
+                        '      </div>'
+                        '    </div>'
+                        '  </div>'
+                        '  <div style="margin-top:1rem">'
+                        '    <div style="height:6px; background:#0a2a35;'
+                        '                border-radius:10px; overflow:hidden">'
+                        '      <div style="height:100%; width:' + str(match_score) + '%;'
+                        '                  background:linear-gradient(90deg, #0891b2, #67e8f9);'
+                        '                  border-radius:10px; transition:width 0.3s ease">'
+                        '      </div>'
+                        '    </div>'
+                        '  </div>'
+                        '</div>'
+                    )
 
-                        <div style="margin-top:1rem">
-                            <div style="height:6px; background:#0a2a35;
-                                        border-radius:10px; overflow:hidden">
-                                <div style="height:100%; width:{app['match_score']}%;
-                                            background:linear-gradient(90deg, #0891b2, #67e8f9);
-                                            border-radius:10px; transition:width 0.3s ease">
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                    """, unsafe_allow_html=True)
+                    st.markdown(html, unsafe_allow_html=True)
 
                     # Status message
-                    if app["status"] == "Applied":
+                    if status == "Applied":
                         st.info("⏳ Your application is under review. We will get back to you soon.")
-                    elif app["status"] == "Shortlisted":
+                    elif status == "Shortlisted":
                         st.success("🌟 Congratulations! You have been shortlisted for this position.")
-                    elif app["status"] == "Interview Scheduled":
+                    elif status == "Interview Scheduled":
                         st.success("📅 Your interview has been scheduled. Please check your email for details.")
-                    elif app["status"] == "Rejected":
+                    elif status == "Rejected":
                         st.warning("We appreciate your interest. Unfortunately you were not selected for this role.")
 
                     st.markdown("<br>", unsafe_allow_html=True)
