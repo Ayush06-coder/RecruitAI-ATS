@@ -182,17 +182,17 @@ streamlit run App.py
 ## 📸 Screenshots
 
 | Page | Screenshot |
-|---|---|
-| Public Home / Job Board | `Screenshots/Home1.png`  `Screenshots/Home2.png`|
-| Apply Form | `Screenshots/Apply.png` |
-| Track Application | `Screenshots/Track.png` |
-| Login | `Screenshots/Login.png` |
-| Dashboard | `Screenshots/Dashboard.png` |
-| Applications (Ranked) | `Screenshots/Applications.png` |
-| JD Matching | `Screenshots/JD_Matching.png` |
-| Analytics | `Screenshots/Analytics1.png` `Screenshots/Analytics2.png`|
-| Admin Panel | `Screenshots/Admin1.png` `Screenshots/Admin2.png` `Screenshots/Admin3.png`|
-| Candidates Database | `Screenshots/Candidates.png` |
+|------|------------|
+| Public Home / Job Board | ![Home1](Screenshots/Home1.png) <br> ![Home2](Screenshots/Home2.png) |
+| Apply Form | ![Apply](Screenshots/Apply.png) |
+| Track Application | ![Track](Screenshots/Track.png) |
+| Login | ![Login](Screenshots/Login.png) |
+| Dashboard | ![Dashboard](Screenshots/Dashboard.png) |
+| Applications (Ranked) | ![Applications](Screenshots/Applications.png) |
+| JD Matching | ![JD Matching](Screenshots/JD_Matching.png) |
+| Analytics | ![Analytics1](Screenshots/Analytics1.png) <br> ![Analytics2](Screenshots/Analytics2.png) |
+| Admin Panel | ![Admin1](Screenshots/Admin1.png) <br> ![Admin2](Screenshots/Admin2.png) <br> ![Admin3](Screenshots/Admin3.png) |
+| Candidates Database | ![Candidates](Screenshots/Candidates.png) |
 
 ---
 
