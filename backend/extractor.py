@@ -1,557 +1,542 @@
 import re
-
 import spacy
 nlp = spacy.load("en_core_web_lg")
 
+# ========== SYNONYMS ==========
+SYNONYMS = {
+    "ML": "Machine Learning", "DL": "Deep Learning", "AI": "Artificial Intelligence",
+    "NLP": "Natural Language Processing", "CV": "Computer Vision", "LLM": "Large Language Model",
+    "RAG": "Retrieval-Augmented Generation", "RL": "Reinforcement Learning",
+    "JS": "JavaScript", "TS": "TypeScript", "Py": "Python",
+    "K8s": "Kubernetes", "CI/CD": "Continuous Integration/Continuous Deployment",
+    "IaC": "Infrastructure as Code", "SRE": "Site Reliability Engineering",
+    "MLOps": "Machine Learning Operations", "DevOps": "Development Operations",
+    "DataOps": "Data Operations", "GitOps": "Git Operations",
+    "VPC": "Virtual Private Cloud", "IAM": "Identity and Access Management",
+    "SSO": "Single Sign-On", "MFA": "Multi-Factor Authentication",
+    "OAuth": "Open Authorization", "JWT": "JSON Web Token",
+    "SSL": "Secure Sockets Layer", "TLS": "Transport Layer Security",
+    "API": "Application Programming Interface", "SDK": "Software Development Kit",
+    "CLI": "Command Line Interface", "GUI": "Graphical User Interface",
+    "UI": "User Interface", "UX": "User Experience",
+    "CDN": "Content Delivery Network", "DNS": "Domain Name System",
+    "VPN": "Virtual Private Network", "WAF": "Web Application Firewall",
+    "DDoS": "Distributed Denial of Service", "IDS": "Intrusion Detection System",
+    "IPS": "Intrusion Prevention System", "SIEM": "Security Information and Event Management",
+    "EDR": "Endpoint Detection and Response", "XDR": "Extended Detection and Response",
+    "DLP": "Data Loss Prevention", "CASB": "Cloud Access Security Broker",
+    "SASE": "Secure Access Service Edge", "ZTNA": "Zero Trust Network Access",
+    "SD-WAN": "Software-Defined Wide Area Network", "SDN": "Software-Defined Networking",
+    "GPU": "Graphics Processing Unit", "CPU": "Central Processing Unit",
+    "TPU": "Tensor Processing Unit", "FPGA": "Field-Programmable Gate Array",
+    "REST": "Representational State Transfer", "SOAP": "Simple Object Access Protocol",
+    "JSON": "JavaScript Object Notation", "XML": "eXtensible Markup Language",
+    "YAML": "YAML Ain't Markup Language", "CSV": "Comma-Separated Values",
+    "HTML": "HyperText Markup Language", "CSS": "Cascading Style Sheets",
+    "DOM": "Document Object Model", "OCR": "Optical Character Recognition",
+    "WebRTC": "Web Real-Time Communication", "HLS": "HTTP Live Streaming",
+    "AR": "Augmented Reality", "VR": "Virtual Reality", "MR": "Mixed Reality",
+    "XR": "Extended Reality", "IoT": "Internet of Things",
+    "IIoT": "Industrial Internet of Things", "NFC": "Near Field Communication",
+    "RFID": "Radio-Frequency Identification", "GPS": "Global Positioning System",
+    "GIS": "Geographic Information System", "LTE": "Long-Term Evolution",
+    "NAS": "Network Attached Storage", "SAN": "Storage Area Network",
+    "SSD": "Solid State Drive", "HDD": "Hard Disk Drive",
+    "TDD": "Test-Driven Development", "BDD": "Behavior-Driven Development",
+    "DDD": "Domain-Driven Design", "OOP": "Object-Oriented Programming",
+    "DRY": "Don't Repeat Yourself", "KISS": "Keep It Simple Stupid",
+    "YAGNI": "You Aren't Gonna Need It", "SOLID": "SOLID Principles",
+    "ACID": "Atomicity Consistency Isolation Durability",
+    "BASE": "Basically Available Soft state Eventual consistency",
+    "OKR": "Objectives and Key Results", "RPA": "Robotic Process Automation",
+    "ERP": "Enterprise Resource Planning", "CRM": "Customer Relationship Management",
+    "CMS": "Content Management System", "LMS": "Learning Management System",
+    "SCM": "Supply Chain Management", "PLM": "Product Lifecycle Management",
+    "MDM": "Master Data Management", "CDP": "Customer Data Platform",
+    "DMP": "Data Management Platform", "BPM": "Business Process Management",
+    "RACI": "Responsible Accountable Consulted Informed",
+    "SWOT": "Strengths Weaknesses Opportunities Threats",
+    "SMART": "Specific Measurable Achievable Relevant Time-bound",
+}
+
+# Build reverse mapping: full form -> abbreviation
+REV_SYN = {v.lower(): k for k, v in SYNONYMS.items()}
+
+def _expand(skill):
+    """Get all forms of a skill (abbreviation + full form)."""
+    s = skill.strip()
+    sl = s.lower()
+    forms = {sl}
+    if s in SYNONYMS:
+        forms.add(SYNONYMS[s].lower())
+    if sl in REV_SYN:
+        forms.add(REV_SYN[sl].lower())
+    return forms
+
+def _has_match(skill, text):
+    """Check if skill or any synonym matches in text."""
+    text_lower = text.lower()
+    for form in _expand(skill):
+        if re.search(r'\b' + re.escape(form) + r'\b', text_lower):
+            return True
+    return False
+
+# ========== BASIC EXTRACTORS ==========
 def extract_email(text):
-    pattern = r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
-    match = re.search(pattern, text)
-    if match:
-        return match.group()
-    return "Email not found"
+    m = re.search(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", text)
+    return m.group() if m else "Email not found"
 
 def extract_phone(text):
-    pattern = r"\+?\d[\d\s\-]{8,15}"
-    match = re.search(pattern, text)
-    if match:
-        return match.group()
-    return "Phone number not found"
+    m = re.search(r"\+?\d[\d\s\-]{8,15}", text)
+    return m.group() if m else "Phone number not found"
 
 def extract_name(text):
-    lines = [line.strip() for line in text.split("\n") if line.strip()]
+    lines = [l.strip() for l in text.split("\n") if l.strip()]
+    job_words = {"developer","engineer","analyst","manager","consultant","designer",
+                 "architect","lead","intern","trainee","assistant","scientist",
+                 "officer","head","director","specialist","coordinator","administrator",
+                 "supervisor","technician","operator","executive","associate",
+                 "freelance","contractor","web","data","product","junior","senior",
+                 "frontend","backend","fullstack","full-stack","full","stack","software"}
+    headings = {"resume","cv","curriculum","vitae","profile","summary","education",
+                "experience","skills","objective","contact","references","professional"}
 
-    headings = {
-        "Resume", "Cv", "Curriculum", "Vitae", "Profile",
-        "Summary", "Education", "Experience", "Skills",
-        "Objective", "Contact", "References", "Professional"
-    }
-
-    job_titles = {
-        "junior", "senior", "developer", "engineer", "analyst",
-        "manager", "designer", "lead", "frontend", "backend",
-        "fullstack", "full-stack", "full", "stack", "software",
-        "intern", "consultant", "architect", "executive",
-        "associate", "trainee", "assistant", "scientist",
-        "officer", "head", "director", "specialist", "coordinator",
-        "administrator", "representative", "supervisor", "technician",
-        "operator", "freelance", "contractor", "web", "data", "product"
-    }
-
-    for i in range(len(lines[:10]) - 1):
-        w1, w2 = lines[i], lines[i + 1]
-
-        if (
-            w1.isupper() and w2.isupper()
-            and len(w1.split()) == 1
-            and len(w2.split()) == 1
-            and w1.title() not in headings
-            and w2.title() not in headings
-            and w1.lower() not in job_titles
-            and w2.lower() not in job_titles
-        ):
+    # Two consecutive uppercase single words
+    for i in range(min(10, len(lines)-1)):
+        w1, w2 = lines[i], lines[i+1]
+        if (w1.isupper() and w2.isupper() and len(w1.split())==1 and len(w2.split())==1
+            and w1.title() not in headings and w2.title() not in headings
+            and w1.lower() not in job_words and w2.lower() not in job_words):
             return f"{w1} {w2}".title()
 
-    text_for_nlp = " ".join(
-        line.title() if line.isupper() else line
-        for line in lines[:10]
-    )
-
-    doc = nlp(text_for_nlp)
-
+    # spaCy NER
+    doc = nlp(" ".join(l.title() if l.isupper() else l for l in lines[:10]))
     for ent in doc.ents:
         if ent.label_ == "PERSON":
             words = ent.text.split()
-
-            clean_words = []
-            for word in words:
-                word_clean = word.strip().lower().rstrip(",.:;-|")
-                if word_clean in job_titles:
+            clean = []
+            for w in words:
+                wc = w.strip().lower().rstrip(",.:;-|")
+                if wc in job_words or any(j in wc for j in ["developer","engineer","analyst","manager","designer","consultant","architect","intern","trainee","assistant"]):
                     break
-                if any(jt in word_clean for jt in ["developer", "engineer", "analyst", "manager", "designer", "consultant", "architect", "intern", "trainee", "assistant"]):
-                    break
-                clean_words.append(word)
-
-            if len(clean_words) >= 2:
-                result = " ".join(clean_words)
-                last_word = clean_words[-1].lower().rstrip(",.:;-|")
-                if last_word not in job_titles:
-                    return result
-
+                clean.append(w)
+            if len(clean) >= 2 and clean[-1].lower().rstrip(",.:;-|") not in job_words:
+                return " ".join(clean)
     return "Name not found"
 
+# ========== SKILLS ==========
 SKILLS_LIST = [
-    "Python", "Java", "C", "C++", "C#", "JavaScript", "TypeScript",
-    "R", "Swift", "Kotlin", "Go", "Rust", "PHP", "Ruby", "Scala",
-    "HTML", "CSS", "React", "Angular", "Vue", "Node.js", "Django",
-    "Flask", "FastAPI", "REST API", "GraphQL",
-    "Machine Learning", "Deep Learning", "NLP", "Computer Vision",
-    "TensorFlow", "PyTorch", "Keras", "Scikit-learn", "Pandas",
-    "NumPy", "Matplotlib", "Seaborn",
-    "SQL", "MySQL", "PostgreSQL", "MongoDB", "SQLite", "Redis",
-    "Git", "GitHub", "Docker", "Kubernetes", "AWS", "Azure", "GCP",
-    "Linux", "Streamlit", "Power BI", "Tableau", "Excel",
-    "Data Structures", "Algorithms", "OOP", "System Design",
-    "Jenkins", "Jest", "CI/CD", "Agile", "Scrum", "Microservices",
-    "RESTful", "Express.js", "Next.js", "Spring Boot", "Hibernate",
-    "Flutter", "Dart", "Firebase", "Supabase", "Prisma", "TypeORM",
-    "Tailwind CSS", "Bootstrap", "Sass", "LESS", "Webpack", "Vite",
-    "Apache Kafka", "RabbitMQ", "Elasticsearch", "Logstash", "Kibana",
-    "Prometheus", "Grafana", "Terraform", "Ansible", "Chef", "Puppet",
-    "Nginx", "Apache", "Tomcat", "Jetty", "WildFly",
-    "Unity", "Unreal Engine", "Blender", "Maya", "3ds Max",
-    "Figma", "Adobe XD", "Sketch", "InVision", "Canva",
-    "Jira", "Confluence", "Trello", "Asana", "Monday.com",
-    "Slack", "Teams", "Zoom", "Notion", "Obsidian",
-    "Postman", "Insomnia", "Swagger", "OpenAPI",
-    "GitLab", "Bitbucket", "Azure DevOps", "CircleCI", "Travis CI",
-    "Heroku", "Vercel", "Netlify", "Firebase Hosting", "AWS Amplify",
-    "DigitalOcean", "Linode", "Vultr", "OVH", "Hetzner",
-    "Oracle", "SQL Server", "DB2", "Sybase", "Informix",
-    "Cassandra", "CouchDB", "Neo4j", "DynamoDB", "Cosmos DB",
-    "InfluxDB", "TimescaleDB", "ClickHouse", "Snowflake", "BigQuery",
-    "Redshift", "Athena", "Presto", "Trino", "Druid",
-    "Hadoop", "Spark", "Hive", "Impala", "Pig", "Kafka",
-    "Airflow", "Prefect", "Dagster", "Luigi", "NiFi",
-    "MLflow", "Kubeflow", "DVC", "Weights & Biases", "Neptune",
-    "Optuna", "Ray", "Dask", "Modin", "Vaex", "Polars",
-    "Spark NLP", "Hugging Face", "OpenAI", "Anthropic", "Cohere",
-    "LangChain", "LlamaIndex", "CrewAI", "AutoGen", "Semantic Kernel",
-    "Pinecone", "Weaviate", "Chroma", "Milvus", "Qdrant", "FAISS",
-    "OpenCV", "Pillow", "Scikit-image", "SimpleITK", "ITK",
-    "NLTK", "spaCy", "Gensim", "TextBlob", "Pattern",
-    "Stanford NLP", "AllenNLP", "Flair", "Stanza", "Transformers",
-    "BERT", "GPT", "T5", "LLaMA", "Mistral", "Claude", "Gemini",
-    "YOLO", "RCNN", "Mask R-CNN", "DETR", "SAM",
-    "Stable Diffusion", "Midjourney", "DALL-E", "Imagen",
-    "Whisper", "TTS", "Coqui", "Murf", "ElevenLabs",
-    "ONNX", "TensorRT", "OpenVINO", "Core ML", "TFLite",
-    "CUDA", "cuDNN", "ROCm", "OpenCL", "Vulkan", "Metal",
-    "MPI", "OpenMP", "CUDA-aware MPI", "NCCL", "Gloo",
-    "gRPC", "Protobuf", "Thrift", "Avro", "MessagePack",
-    "WebSocket", "Socket.io", "SignalR", "MQTT", "CoAP",
-    "OAuth", "JWT", "SAML", "LDAP", "Kerberos", "SSO",
-    "HashiCorp Vault", "AWS KMS", "Azure Key Vault", "Google Cloud KMS",
-    "SonarQube", "ESLint", "Prettier", "Black", "Flake8", "Pylint",
-    "Mypy", "Pyright", "TypeScript Compiler", "Babel", "SWC",
-    "Storybook", "Chromatic", "Cypress", "Playwright", "Selenium",
-    "Appium", "Detox", "Maestro", "Katalon", "TestComplete",
-    "JMeter", "Gatling", "Locust", "k6", "Artillery",
-    "Grafana", "Datadog", "New Relic", "Dynatrace", "AppDynamics",
-    "Splunk", "ELK Stack", "Fluentd", "Logstash", "Beats",
-    "PagerDuty", "Opsgenie", "VictorOps", "xMatters",
-    "ServiceNow", "Remedy", "Jira Service Management",
-    "Confluence", "Notion", "SharePoint", "Google Workspace",
-    "Microsoft 365", "Slack", "Discord", "Mattermost", "Rocket.Chat",
-    "Zoom", "Google Meet", "Microsoft Teams", "Webex", "GoToMeeting",
-    "Loom", "Vidyard", "Wistia", "Kaltura", "Panopto",
-    "Figma", "Sketch", "Adobe XD", "InVision", "Axure", "Balsamiq",
-    "Miro", "Mural", "Lucidchart", "Draw.io", "Whimsical",
-    "Canva", "Adobe Creative Suite", "Photoshop", "Illustrator",
-    "InDesign", "Premiere Pro", "After Effects", "Audition",
-    "Blender", "Cinema 4D", "Maya", "3ds Max", "ZBrush",
-    "Houdini", "Substance Painter", "Substance Designer",
-    "Unreal Engine", "Unity", "Godot", "CryEngine", "Lumberyard",
-    "GameMaker", "Construct", "RPG Maker", "Ren'Py",
-    "Arduino", "Raspberry Pi", "ESP32", "STM32", "PIC",
-    "FPGA", "VHDL", "Verilog", "SystemVerilog", "HLS",
-    "MATLAB", "Simulink", "LabVIEW", "Mathematica", "Maple",
-    "ANSYS", "COMSOL", "Abaqus", "SolidWorks", "AutoCAD",
-    "CATIA", "NX", "Creo", "Inventor", "Fusion 360",
-    "Revit", "ArchiCAD", "SketchUp", "Rhino", "Grasshopper",
-    "Lumion", "Enscape", "V-Ray", "Corona Renderer", "Arnold",
-    "Octane Render", "Redshift", "Cycles", "Eevee", "Mantra",
-    "Houdini Engine", "Clarisse", "Katana", "Mari", "Nuke",
-    "DaVinci Resolve", "Final Cut Pro", "Avid Media Composer",
-    "Premiere Pro", "After Effects", "Motion", "Compressor",
-    "Logic Pro", "Pro Tools", "Ableton Live", "FL Studio",
-    "Cubase", "Nuendo", "Reaper", "Studio One", "Bitwig",
-    "Reason", "Maschine", "Komplete", "Kontakt", "Serato",
-    "Traktor", "Rekordbox", "Virtual DJ", "Djay",
-    "SAS", "SPSS", "Stata", "Minitab", "JMP",
-    "RStudio", "Jupyter", "Zeppelin", "Databricks", "Snowflake",
-    "Palantir", "Alteryx", "Knime", "RapidMiner", "Weka",
-    "Orange", "RapidMiner", "Dataiku", "Domino", "H2O.ai",
-    "DataRobot", "AutoML", "TPOT", "Auto-sklearn", "Auto-PyTorch",
-    "Featuretools", "TSFresh", "Prophet", "ARIMA", "SARIMA",
-    "LSTM", "GRU", "Transformer", "BERT", "RoBERTa", "DeBERTa",
-    "XLNet", "ALBERT", "ELECTRA", "DistilBERT", "MobileBERT",
-    "TinyBERT", "Longformer", "BigBird", "Reformer", "Performer",
-    "Linformer", "Linear Attention", "Flash Attention", "Sparse Attention",
-    "Mixture of Experts", "Switch Transformer", "GLaM", "PaLM",
-    "Chinchilla", "Gopher", "LaMDA", "Bard", "Claude", "GPT-4",
-    "GPT-3.5", "GPT-3", "GPT-2", "GPT", "Codex", "Copilot",
-    "AlphaCode", "StarCoder", "CodeT5", "CodeBERT", "GraphCodeBERT",
-    "UniXcoder", "CodeGPT", "PolyCoder", "SantaCoder", "InCoder",
-    "Replit", "GitHub Codespaces", "Gitpod", "CodeSandbox",
-    "StackBlitz", "JSFiddle", "CodePen", "Glitch", "Repl.it",
-    "LeetCode", "HackerRank", "Codeforces", "AtCoder", "TopCoder",
-    "Codewars", "Exercism", "Edabit", "CheckiO", "CodeSignal",
-    "InterviewBit", "Scaler", "AlgoExpert", "NeetCode",
-    "System Design Primer", "Designing Data-Intensive Applications",
-    "Clean Code", "Clean Architecture", "Domain-Driven Design",
-    "The Pragmatic Programmer", "Code Complete", "Refactoring",
-    "Head First Design Patterns", "Gang of Four", "SOLID",
-    "DRY", "KISS", "YAGNI", "TDD", "BDD", "DDD",
-    "Event Sourcing", "CQRS", "Saga Pattern", "Outbox Pattern",
-    "Circuit Breaker", "Retry Pattern", "Bulkhead", "Timeout",
-    "Idempotency", "Optimistic Locking", "Pessimistic Locking",
-    "MVCC", "ACID", "BASE", "CAP Theorem", "PACELC",
-    "Sharding", "Partitioning", "Replication", "Federation",
-    "Denormalization", "Indexing", "Query Optimization",
-    "Connection Pooling", "Caching Strategies", "Cache Invalidation",
-    "CDN", "Edge Computing", "Serverless", "FaaS", "PaaS",
-    "IaaS", "SaaS", "DaaS", "BaaS", "MBaaS",
-    "Multi-tenancy", "Single-tenant", "Hybrid Cloud", "Multi-cloud",
-    "Private Cloud", "Public Cloud", "Community Cloud",
-    "Zero Trust", "Defense in Depth", "Least Privilege",
-    "RBAC", "ABAC", "PBAC", "MAC", "DAC",
-    "SOC 2", "ISO 27001", "GDPR", "CCPA", "HIPAA", "PCI DSS",
-    "NIST", "CIS Controls", "OWASP", "SANS", "CERT",
-    "Threat Modeling", "STRIDE", "PASTA", "Trike", "VAST",
-    "Penetration Testing", "Red Team", "Blue Team", "Purple Team",
-    "Incident Response", "Forensics", "Malware Analysis",
-    "Reverse Engineering", "Binary Exploitation", "Web Exploitation",
-    "Cryptography", "PKI", "SSL/TLS", "IPSec", "VPN",
-    "Blockchain", "Ethereum", "Solidity", "Hyperledger", "Corda",
-    "Quorum", "Polygon", "Arbitrum", "Optimism", "zkSync",
-    "StarkNet", "Cosmos", "Polkadot", "Substrate", "Avalanche",
-    "Solana", "Cardano", "Tezos", "Algorand", "NEAR",
-    "IPFS", "Filecoin", "Arweave", "Sia", "Storj",
-    "Chainlink", "The Graph", "Uniswap", "Aave", "Compound",
-    "MakerDAO", "Curve", "SushiSwap", "PancakeSwap",
-    "OpenZeppelin", "Hardhat", "Truffle", "Foundry", "Brownie",
-    "Remix", "MetaMask", "WalletConnect", "Rainbow",
-    "Ethers.js", "Web3.js", "Web3.py", "viem", "wagmi",
-    "Token Standards", "ERC-20", "ERC-721", "ERC-1155", "ERC-4337",
-    "DeFi", "NFT", "DAO", "GameFi", "SocialFi", "DeSci",
+    "Python","Java","C","C++","C#","JavaScript","TypeScript","R","Swift","Kotlin",
+    "Go","Rust","PHP","Ruby","Scala","HTML","CSS","SQL","NoSQL","Bash","Shell",
+    "Perl","Lua","Groovy","Objective-C","MATLAB","Julia","Dart","VBA",
+    "React","Angular","Vue","Next.js","Nuxt.js","Svelte","Node.js","Express.js",
+    "Django","Flask","FastAPI","Spring Boot","Ruby on Rails","Laravel","ASP.NET",
+    "jQuery","Bootstrap","Tailwind CSS","Material UI","HTMX","Alpine.js","Preact",
+    "Gatsby","Three.js","D3.js","Chart.js","WebGL",
+    "MySQL","PostgreSQL","MongoDB","SQLite","Redis","Cassandra","CouchDB","Neo4j",
+    "DynamoDB","Cosmos DB","InfluxDB","TimescaleDB","ClickHouse","Snowflake",
+    "BigQuery","Redshift","Athena","Presto","Trino","Druid","Oracle","SQL Server",
+    "MariaDB","CockroachDB","FaunaDB","Supabase","Firebase","Prisma","TypeORM",
+    "Sequelize","Hibernate","Entity Framework","Dapper","Mongoose",
+    "AWS","Azure","GCP","Google Cloud","IBM Cloud","DigitalOcean","Linode",
+    "Heroku","Vercel","Netlify","Cloudflare","Docker","Kubernetes","Helm",
+    "Terraform","Ansible","Chef","Puppet","SaltStack","Pulumi","Vagrant","Nomad",
+    "Consul","Vault","Jenkins","GitLab CI","GitHub Actions","CircleCI","Travis CI",
+    "Drone","ArgoCD","Spinnaker","Flux","Tekton","AWS CodePipeline","Azure DevOps",
+    "Google Cloud Build","Nginx","Apache","Tomcat","HAProxy","Traefik","Envoy",
+    "Istio","Linkerd","Prometheus","Grafana","Datadog","New Relic","Dynatrace",
+    "Splunk","ELK Stack","Fluentd","Logstash","PagerDuty","Opsgenie","ServiceNow",
+    "Machine Learning","Deep Learning","NLP","Natural Language Processing",
+    "Computer Vision","TensorFlow","PyTorch","Keras","Scikit-learn","scikit-learn",
+    "XGBoost","LightGBM","CatBoost","Pandas","NumPy","SciPy","Matplotlib","Seaborn",
+    "Plotly","Bokeh","Altair","Dask","Modin","Vaex","Polars","Ray","Spark",
+    "Apache Spark","PySpark","Hadoop","Hive","Impala","Pig","Kafka","Airflow",
+    "Prefect","Dagster","Luigi","NiFi","MLflow","Kubeflow","DVC","Weights & Biases",
+    "Neptune","Optuna","Hyperopt","Featuretools","TSFresh","Prophet","ARIMA",
+    "SARIMA","LSTM","GRU","Transformer","BERT","RoBERTa","DeBERTa","XLNet",
+    "ALBERT","ELECTRA","DistilBERT","GPT","GPT-2","GPT-3","GPT-4","GPT-3.5",
+    "LLaMA","Mistral","Claude","Gemini","PaLM","T5","BART","Stable Diffusion",
+    "Midjourney","DALL-E","Whisper","TTS","Coqui","OpenCV","Pillow","NLTK",
+    "spaCy","Gensim","TextBlob","Hugging Face","OpenAI","Anthropic","LangChain",
+    "LlamaIndex","CrewAI","AutoGen","Pinecone","Weaviate","Chroma","Milvus",
+    "Qdrant","FAISS","ONNX","TensorRT","OpenVINO","CUDA","cuDNN","ROCm",
+    "OpenCL","Vulkan","Metal","RAPIDS","CuDF","CuML","CuGraph","Numba",
+    "Statsmodels","Pingouin","A/B Testing","Hypothesis Testing","Statistical Modeling",
+    "Regression","Classification","Clustering","Dimensionality Reduction",
+    "Ensemble Methods","Random Forest","Gradient Boosting","SVM","Naive Bayes",
+    "KNN","K-Means","DBSCAN","PCA","t-SNE","UMAP","Cross-validation",
+    "Grid Search","Random Search","Feature Engineering","Feature Selection",
+    "Data Preprocessing","Data Cleaning","Data Wrangling","Data Mining",
+    "Data Visualization","EDA","Exploratory Data Analysis","Time Series Analysis",
+    "Survival Analysis","Anomaly Detection","Fraud Detection",
+    "Recommendation Systems","Collaborative Filtering","Content-Based Filtering",
+    "Reinforcement Learning","Q-Learning","Deep Q-Network","Policy Gradient",
+    "Actor-Critic","PPO","A3C","SAC","TD3","Generative AI","GANs","VAE",
+    "Diffusion Models","Flow Models","Multi-modal AI","Vision-Language Models",
+    "Large Language Models","Prompt Engineering","Retrieval-Augmented Generation",
+    "Fine-tuning","LoRA","QLoRA","PEFT","Adapter Tuning","Quantization",
+    "Pruning","Knowledge Distillation","Model Compression","MLOps","Model Monitoring",
+    "Data Drift","Concept Drift","Feature Store","Feast","Tecton",
+    "Delta Lake","Apache Iceberg","Hudi","Lakehouse","Data Warehouse","Data Lake",
+    "Data Mesh","Data Fabric","ETL","ELT","Data Pipeline","Stream Processing",
+    "Batch Processing","Apache Beam","Dataflow","Glue","AWS Glue",
+    "Azure Data Factory","dbt","Data Build Tool","Great Expectations","Soda Core",
+    "Power BI","Tableau","Looker","Metabase","Superset","Redash","QuickSight",
+    "Data Studio","ThoughtSpot","Sisense","Domo","MicroStrategy","Qlik Sense",
+    "Excel","Google Sheets","Pandas","Plotly","Dash",
+    "React Native","Flutter","Swift","Kotlin","Xamarin","Ionic","Cordova",
+    "NativeScript","Capacitor","Expo","Android","iOS","Android Studio","Xcode",
+    "CocoaPods","Gradle","Maven","Fastlane","OneSignal","ARKit","ARCore",
+    "Unity","Unreal Engine","Godot","Blender","Cinema 4D","Maya","3ds Max",
+    "ZBrush","Houdini","Shader Programming","HLSL","GLSL","Physics Engine",
+    "Box2D","Bullet Physics","PhysX","Networking","Multiplayer","Photon",
+    "Game AI","Pathfinding","Behavior Trees","State Machines",
+    "Penetration Testing","Ethical Hacking","Red Team","Blue Team","Purple Team",
+    "Threat Modeling","STRIDE","PASTA","Incident Response","Digital Forensics",
+    "Malware Analysis","Reverse Engineering","Binary Exploitation",
+    "Web Exploitation","Cryptography","PKI","IPSec","SOC 2","ISO 27001",
+    "GDPR","CCPA","HIPAA","PCI DSS","NIST","CIS Controls","OWASP","SANS",
+    "Zero Trust","Defense in Depth","Least Privilege","RBAC","ABAC","PBAC",
+    "HashiCorp Vault","AWS KMS","Azure Key Vault","Secrets Management",
+    "Identity Management","Blockchain","Ethereum","Solidity","Hyperledger",
+    "Polygon","Arbitrum","Optimism","zkSync","StarkNet","Cosmos","Polkadot",
+    "Avalanche","Solana","Cardano","IPFS","Filecoin","Chainlink","The Graph",
+    "Uniswap","Aave","OpenZeppelin","Hardhat","Truffle","Foundry","Ethers.js",
+    "Web3.js","Web3.py","ERC-20","ERC-721","ERC-1155","DeFi","NFT","DAO",
+    "Zero-Knowledge Proofs","zk-SNARKs","zk-STARKs","Rollups",
+    "Unit Testing","Integration Testing","E2E Testing","Regression Testing",
+    "Load Testing","Stress Testing","Performance Testing","Security Testing",
+    "TDD","Test-Driven Development","BDD","Behavior-Driven Development",
+    "Jest","Mocha","Chai","Cypress","Playwright","Selenium","Appium","Detox",
+    "JUnit","TestNG","PyTest","Mocking","Stubbing","Code Coverage",
+    "SonarQube","JaCoCo","Coverage.py","Mutation Testing","Fuzzing",
+    "JMeter","Gatling","Locust","k6","Postman","Insomnia","Swagger","OpenAPI",
+    "WireMock","Git","GitHub","GitLab","Bitbucket","Azure DevOps","SVN",
+    "Mercurial","Git Flow","GitHub Flow","Code Review","Pull Requests",
+    "Conventional Commits","Semantic Versioning","Git Hooks","Pre-commit",
+    "Linux","Ubuntu","CentOS","RHEL","Debian","Fedora","Arch Linux",
+    "Alpine Linux","Windows","macOS","Unix","Bash","Zsh","PowerShell",
+    "System Administration","Systemd","Cron","Kernel","Device Drivers",
+    "Embedded Systems","RTOS","Virtualization","VMware","VirtualBox","KVM",
+    "Xen","Hyper-V","Proxmox","QEMU","Libvirt",
+    "TCP/IP","HTTP","HTTPS","HTTP/2","HTTP/3","QUIC","WebSocket","gRPC",
+    "REST API","GraphQL","SOAP","Message Queue","RabbitMQ","Apache Kafka",
+    "ActiveMQ","ZeroMQ","Redis","Memcached","Celery","RQ","WebRTC","RTMP",
+    "SDN","NFV","5G","IoT","Edge Computing","Serverless","FaaS","PaaS",
+    "IaaS","SaaS","Multi-tenancy","Hybrid Cloud","Multi-cloud",
+    "Agile","Scrum","Kanban","Lean","XP","Extreme Programming","SAFe",
+    "Waterfall","DevOps","DevSecOps","GitOps","DataOps","AIOps",
+    "SRE","Site Reliability Engineering","Chaos Engineering","Observability",
+    "Monitoring","Tracing","Logging","CI/CD","Continuous Integration",
+    "Continuous Deployment","Continuous Delivery","Infrastructure as Code",
+    "Configuration Management","Immutable Infrastructure","Blue-Green Deployment",
+    "Canary Deployment","Feature Flags","A/B Testing","Multivariate Testing",
+    "Design Thinking","OKRs","KPIs","Product Management","Project Management",
+    "Risk Management","Disaster Recovery","Business Continuity",
+    "High Availability","Fault Tolerance","Load Balancing","Auto-scaling",
+    "Data Structures","Algorithms","OOP","Object-Oriented Programming",
+    "Functional Programming","Procedural Programming","Design Patterns",
+    "SOLID","DRY","KISS","YAGNI","Clean Code","Clean Architecture",
+    "Hexagonal Architecture","Onion Architecture","Layered Architecture",
+    "Microservices","Event Sourcing","CQRS","Saga Pattern","Outbox Pattern",
+    "Circuit Breaker","Retry Pattern","Bulkhead","Timeout","Idempotency",
+    "Optimistic Locking","Pessimistic Locking","MVCC","ACID","BASE",
+    "CAP Theorem","PACELC","Sharding","Partitioning","Replication",
+    "Federation","Denormalization","Indexing","Query Optimization",
+    "Connection Pooling","Caching Strategies","Cache Invalidation",
+    "Rate Limiting","Throttling","Backpressure","Load Shedding",
+    "Accessibility","WCAG","ARIA","Internationalization","i18n","Localization",
+    "l10n","SEO","Search Engine Optimization","Web Analytics","Google Analytics",
+    "Mixpanel","Amplitude","Growth Hacking","Conversion Rate Optimization",
+    "User Onboarding","Retention","Churn Analysis","Customer Journey",
+    "Funnel Analysis","Cohort Analysis","Predictive Analytics",
+    "Prescriptive Analytics","Descriptive Analytics","Real-time Analytics",
+    "Streaming Analytics","Batch Analytics","Data Governance","Data Quality",
+    "Data Lineage","Data Catalog","Master Data Management","Customer 360",
+    "Data Privacy","Data Security","Data Ethics","Responsible AI",
+    "Fairness","Bias Detection","Explainability","Interpretability",
+    "Model Governance","AI Governance","AI Risk Management",
+    "Communication","Leadership","Teamwork","Collaboration","Problem Solving",
+    "Critical Thinking","Analytical Thinking","Creativity","Innovation",
+    "Adaptability","Time Management","Organization","Prioritization",
+    "Attention to Detail","Self-Motivated","Proactive","Mentoring","Coaching",
+    "Cross-functional Collaboration","Stakeholder Communication",
+    "Presentation Skills","Technical Writing","Documentation",
+    "Conflict Resolution","Negotiation","Emotional Intelligence",
+    "Remote Work","Distributed Teams",
 ]
 
 def extract_skills(text):
-    found_skills = []
+    found = set()
+    # Method 1: predefined list
     for skill in SKILLS_LIST:
-        pattern = r'\b' + re.escape(skill) + r'\b'
-        if re.search(pattern, text, re.IGNORECASE):
-            found_skills.append(skill)
-    return found_skills if found_skills else ["No skills found"]
+        pat = re.escape(skill) if (" " in skill or "/" in skill or "-" in skill) else r'\b' + re.escape(skill) + r'\b'
+        if re.search(pat, text, re.IGNORECASE):
+            found.add(skill)
+    # Method 2: dynamic from skills section
+    lines = text.split("\n")
+    in_skills = False
+    for line in lines:
+        ls = line.strip().lower()
+        if any(k in ls for k in ["technical skills","core skills","key skills","skills","proficiencies"]):
+            if len(ls.split()) <= 4:
+                in_skills = True
+                continue
+        if in_skills and any(k in ls for k in ["experience","education","projects","certifications","summary"]):
+            if len(ls.split()) <= 4:
+                in_skills = False
+                continue
+        if in_skills:
+            clean = re.sub(r'^[\w\s/&]+:\s*', '', line)
+            for item in re.split(r'[,|;|/]', clean):
+                item = item.strip()
+                if 1 <= len(item.split()) <= 4 and len(item) >= 2 and not any(c in item for c in [".","!","?"]):
+                    found.add(item)
+    # Method 3: table format
+    for line in lines:
+        m = re.match(r'^[\w\s/&]+:\s*(.+)$', line.strip())
+        if m:
+            for item in re.split(r'[,|;|/]', m.group(1)):
+                item = item.strip()
+                if 1 <= len(item.split()) <= 4 and len(item) >= 2 and not any(c in item for c in [".","!","?"]):
+                    found.add(item)
+    return sorted(list(found)) if found else ["No skills found"]
 
-EDUCATION_KEYWORDS = [
-    "b.tech", "m.tech", "btech", "mtech", "b.e", "m.e",
-    "b.sc", "m.sc", "bsc", "msc", "bca", "mca", "bba", "mba",
-    "bachelor", "master", "phd", "doctorate", "diploma",
-    "b.com", "m.com", "b.a", "m.a"
-]
-
-UNIVERSITY_KEYWORDS = [
-    "university", "college", "institute", "iit", "nit",
-    "bits", "amity", "vit", "manipal", "school of"
-]
+# ========== EDUCATION ==========
+EDU_KEYS = ["b.tech","m.tech","btech","mtech","b.e","m.e","b.sc","m.sc","bsc","msc",
+            "bca","mca","bba","mba","bachelor","master","phd","doctorate","diploma",
+            "b.com","m.com","b.a","m.a","high school","secondary","senior secondary"]
+UNI_KEYS = ["university","college","institute","iit","nit","bits","amity","vit",
+            "manipal","school of","academy","polytechnic","technical","engineering"]
 
 def extract_education(text):
-    lines = [line.strip() for line in text.split("\n") if line.strip()]
-
-    section_keywords = ["education", "qualification", "academic"]
-    stop_keywords = ["experience", "skills", "projects",
-                     "certifications", "summary", "objective"]
-    keywords = EDUCATION_KEYWORDS + UNIVERSITY_KEYWORDS
-
-    education_lines = []
-    in_education_section = False
-
+    lines = [l.strip() for l in text.split("\n") if l.strip()]
+    edu_lines = []
+    in_edu = False
     for line in lines:
-        line_lower = line.lower()
-
-        if any(kw in line_lower for kw in section_keywords):
-            in_education_section = True
+        ll = line.lower()
+        if any(k in ll for k in ["education","qualification","academic"]):
+            in_edu = True
             continue
-
-        if in_education_section and any(kw in line_lower for kw in stop_keywords):
+        if in_edu and any(k in ll for k in ["experience","skills","projects","certifications","summary","objective"]):
             break
+        if in_edu:
+            edu_lines.append(line)
+    found = [l for l in edu_lines if any(k in l.lower() for k in EDU_KEYS + UNI_KEYS)]
+    return found if found else ["Education not found"]
 
-        if in_education_section:
-            education_lines.append(line)
-
-    found_education = [
-        line for line in education_lines
-        if any(kw in line.lower() for kw in keywords)
-    ]
-
-    return found_education if found_education else ["Education not found"]
-
-ROLE_KEYWORDS = [
-    "intern", "internship", "engineer", "developer", "analyst",
-    "manager", "consultant", "designer", "architect", "lead",
-    "executive", "associate", "trainee", "assistant", "scientist"
-]
-
-COMPANY_KEYWORDS = [
-    "technologies", "solutions", "systems", "services", "consulting",
-    "software", "tech", "labs", "pvt", "ltd", "inc", "limited",
-    "corp", "group", "studio"
-]
+# ========== EXPERIENCE ==========
+ROLE_WORDS = {"engineer","developer","analyst","manager","consultant","designer",
+              "architect","lead","intern","trainee","assistant","scientist",
+              "officer","head","director","specialist","coordinator","administrator",
+              "supervisor","technician","operator","executive","associate","freelance","contractor"}
+COMPANY_WORDS = {"technologies","solutions","systems","services","consulting",
+                 "software","tech","labs","pvt","ltd","inc","limited","corp",
+                 "group","studio","company","corporation","industries","ventures",
+                 "partners","global","digital","innovations","enterprises","networks","media","cloud"}
 
 def extract_experience(text):
-    """
-    Extract experience from resume text.
-    Handles: DOCX bold/italic, various date formats, bullet points, etc.
-    Never returns empty if experience section exists.
-    """
-    lines = [line.strip() for line in text.split("\n") if line.strip()]
+    lines = [l.strip() for l in text.split("\n") if l.strip()]
+    section_kws = ["work experience","professional experience","experience","employment",
+                   "work history","career history","professional background","employment history","job history"]
+    stop_kws = ["education","academic","qualification","degree","skills","technical skills",
+                "core skills","key skills","projects","certifications","achievements",
+                "publications","languages","interests","hobbies","references","summary","objective","profile"]
 
-    section_keywords = [
-        "work experience", "professional experience", "experience",
-        "employment", "work history", "career history", "professional background",
-        "employment history", "job history", "career summary"
-    ]
-
-    stop_keywords = [
-        "education", "academic", "qualification", "degree",
-        "skills", "technical skills", "core skills", "key skills",
-        "projects", "personal projects", "side projects",
-        "certifications", "certificates", "licenses",
-        "achievements", "awards", "honors",
-        "publications", "research", "papers",
-        "languages", "interests", "hobbies", "activities",
-        "references", "referees", "testimonials",
-        "summary", "objective", "profile", "about me"
-    ]
-
-    def _is_section_header(line, keywords):
-        line_clean = line.lower().replace("**", "").replace("*", "").strip()
-        for kw in keywords:
-            if kw in line_clean:
-                words = line_clean.split()
-                if len(words) <= 6:
-                    if not any(c in line_clean for c in [".", ":"] if c not in kw.split()):
-                        return True
-                    if line.isupper() or line.istitle() or "**" in line or len(words) <= 3:
-                        return True
+    def is_header(line, kws):
+        lc = line.lower().replace("**","").replace("*","").strip()
+        for kw in kws:
+            if kw in lc and len(lc.split()) <= 6:
+                if not any(c in lc for c in [".",":"] if c not in kw.split()):
+                    return True
+                if line.isupper() or line.istitle() or "**" in line or len(lc.split()) <= 3:
+                    return True
         return False
 
-    def _has_date(line):
-        date_patterns = [
-            r'\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+\d{4}\b',
-            r'\b\d{4}\s*[-–—]\s*(present|current|now|today|\d{4})\b',
-            r'\b\d{1,2}/\d{4}\s*[-–—]\s*(present|current|now|\d{1,2}/\d{4})\b',
-            r'\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{4}\b',
-            r'\b\d{4}\s*[-–—]\s*\d{4}\b',
-            r'\b\d{4}\s+to\s+(present|current|\d{4})\b',
-            r'\b\d{4}\s*[-–—]\s*\b',
-            r'\b(present|current)\b',
-        ]
-        line_lower = line.lower()
-        for pattern in date_patterns:
-            if re.search(pattern, line_lower, re.IGNORECASE):
+    def has_date(line):
+        dp = [r'\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+\d{4}\b',
+              r'\b\d{4}\s*[-–—]\s*(present|current|now|today|\d{4})\b',
+              r'\b\d{1,2}/\d{4}\s*[-–—]\s*(present|current|now|\d{1,2}/\d{4})\b',
+              r'\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{4}\b',
+              r'\b\d{4}\s*[-–—]\s*\d{4}\b',r'\b\d{4}\s+to\s+(present|current|\d{4})\b',
+              r'\b\d{4}\s*[-–—]\s*\b',r'\b(present|current)\b']
+        for p in dp:
+            if re.search(p, line.lower(), re.IGNORECASE):
                 return True
         return False
 
-    def _is_bullet_point(line):
-        bullet_starts = ["•", "-", "*", "►", "→", "⇒", ">", "◦", "▪", "▫", "●", "○", "‣", "⁃", "◆"]
-        stripped = line.strip()
-        return any(stripped.startswith(b) for b in bullet_starts) or re.match(r'^[\s]*[•\-*►→⇒>◦▪▫●○‣⁃◆]\s*', stripped)
+    def is_bullet(line):
+        bs = ["•","-","*","►","→","⇒",">","◦","▪","▫","●","○","‣","⁃","◆"]
+        return any(line.strip().startswith(b) for b in bs) or re.match(r'^[\s]*[•\-*►→⇒>◦▪▫●○‣⁃◆]\s*', line.strip())
 
-    def _is_role_line(line):
-        role_keywords = [
-            "engineer", "developer", "analyst", "manager", "consultant",
-            "designer", "architect", "lead", "intern", "trainee",
-            "assistant", "scientist", "officer", "head", "director",
-            "specialist", "coordinator", "administrator", "supervisor",
-            "technician", "operator", "executive", "associate",
-            "freelance", "contractor"
-        ]
-        line_lower = line.lower().replace("**", "").replace("*", "").strip()
-        return any(kw in line_lower for kw in role_keywords)
+    def is_role(line):
+        return any(w in line.lower().replace("**","").replace("*","") for w in ROLE_WORDS)
 
-    def _is_company_line(line):
-        company_keywords = [
-            "technologies", "solutions", "systems", "services", "consulting",
-            "software", "tech", "labs", "pvt", "ltd", "inc", "limited",
-            "corp", "group", "studio", "company", "corporation",
-            "industries", "ventures", "partners", "global", "digital",
-            "innovations", "enterprises", "networks", "media", "cloud"
-        ]
-        line_lower = line.lower().replace("**", "").replace("*", "").strip()
-        return any(kw in line_lower for kw in company_keywords)
+    def is_company(line):
+        return any(w in line.lower().replace("**","").replace("*","") for w in COMPANY_WORDS)
 
-    def _is_continuation_line(line):
-        """Check if line is a continuation of previous text."""
-        line_clean = line.strip()
-        if not line_clean:
-            return False
-        if line_clean[0].islower():
-            return True
-        if len(line_clean) < 40 and not line_clean.endswith(('.', '!', '?', ':', ';')):
-            return True
-        return False
+    def is_cont(line):
+        lc = line.strip()
+        return bool(lc) and (lc[0].islower() or (len(lc) < 40 and not lc.endswith(('.','!','?',':',';'))))
 
-    def _clean_line(line):
-        return line.replace("**", "").replace("*", "").strip()
+    def clean(line):
+        return line.replace("**","").replace("*","").strip()
 
-    # Find experience section
-    exp_start_idx = -1
-    for i, line in enumerate(lines):
-        if _is_section_header(line, section_keywords):
-            exp_start_idx = i
+    # Find section
+    start = -1
+    for i, l in enumerate(lines):
+        if is_header(l, section_kws):
+            start = i
+            break
+    if start == -1:
+        for i, l in enumerate(lines):
+            lc = l.lower().replace("**","").replace("*","").strip()
+            if any(k in lc for k in section_kws) and len(lc.split()) <= 4:
+                start = i
+                break
+    if start == -1:
+        return [l for l in lines if has_date(l) and (is_role(l) or is_company(l) or len(l.split()) <= 10)] or ["Experience not found"]
+
+    # Find end
+    end = len(lines)
+    for i in range(start+1, len(lines)):
+        if is_header(lines[i], stop_kws):
+            end = i
             break
 
-    if exp_start_idx == -1:
-        for i, line in enumerate(lines):
-            line_clean = line.lower().replace("**", "").replace("*", "").strip()
-            if any(kw in line_clean for kw in section_keywords):
-                if len(line_clean.split()) <= 4:
-                    exp_start_idx = i
-                    break
-
-    if exp_start_idx == -1:
-        entries = []
-        for i, line in enumerate(lines):
-            if _has_date(line) and (_is_role_line(line) or _is_company_line(line) or len(line.split()) <= 10):
-                entries.append(line)
-        return entries if entries else ["Experience not found"]
-
-    # Find where experience section ends
-    exp_end_idx = len(lines)
-    for i in range(exp_start_idx + 1, len(lines)):
-        if _is_section_header(lines[i], stop_keywords):
-            exp_end_idx = i
-            break
-
-    raw_exp_lines = lines[exp_start_idx + 1:exp_end_idx]
-
-    if not raw_exp_lines:
+    raw = lines[start+1:end]
+    if not raw:
         return ["Experience not found"]
 
     # Merge continuation lines
-    merged_lines = []
-    for line in raw_exp_lines:
-        if merged_lines and _is_continuation_line(line) and not _is_bullet_point(line):
-            prev = merged_lines[-1]
-            if not prev.endswith(('.', '!', '?', ':', ';', ')', ']', '}')):
-                merged_lines[-1] = prev + " " + line
+    merged = []
+    for line in raw:
+        if merged and is_cont(line) and not is_bullet(line):
+            prev = merged[-1]
+            if not prev.endswith(('.','!','?',':',';',' )',']','}')):
+                merged[-1] = prev + " " + line
                 continue
-        merged_lines.append(line)
+        merged.append(line)
 
     # Group entries
     entries = []
-    current_entry = []
-
-    for line in merged_lines:
-        line_clean = _clean_line(line)
-
-        if not line_clean:
-            if current_entry:
-                entries.append("\n".join(current_entry))
-                current_entry = []
+    curr = []
+    for line in merged:
+        cl = clean(line)
+        if not cl:
+            if curr:
+                entries.append("\n".join(curr))
+                curr = []
             continue
-
-        has_date = _has_date(line)
-        is_role = _is_role_line(line)
-        is_company = _is_company_line(line)
-        is_bullet = _is_bullet_point(line)
-        word_count = len(line_clean.split())
-        is_short = word_count <= 8
-        is_all_caps = line.isupper() and word_count <= 6
-
-        is_new_entry = False
-
-        if has_date and is_role and not is_bullet:
-            is_new_entry = True
-        elif has_date and is_short and not is_bullet and not is_company:
-            is_new_entry = True
-        elif is_all_caps and not is_bullet:
-            is_new_entry = True
-        elif is_role and is_company and not is_bullet:
-            is_new_entry = True
-        elif is_role and is_short and not is_bullet and not has_date:
-            if current_entry and len(current_entry) > 1:
-                is_new_entry = True
-
-        if is_new_entry and current_entry:
-            if len(current_entry) == 1 and _is_company_line(current_entry[0]) and not _has_date(current_entry[0]):
-                current_entry.append(line)
+        hd = has_date(line)
+        ir = is_role(line)
+        ic = is_company(line)
+        ib = is_bullet(line)
+        wc = len(cl.split())
+        ac = line.isupper() and wc <= 6
+        ne = False
+        if hd and ir and not ib:
+            ne = True
+        elif hd and wc <= 8 and not ib and not ic:
+            ne = True
+        elif ac and not ib:
+            ne = True
+        elif ir and ic and not ib:
+            ne = True
+        elif ir and wc <= 5 and not ib and not hd:
+            if curr and len(curr) > 1:
+                ne = True
+        if ne and curr:
+            if len(curr) == 1 and is_company(curr[0]) and not has_date(curr[0]):
+                curr.append(line)
             else:
-                entries.append("\n".join(current_entry))
-                current_entry = [line]
-        elif is_new_entry:
-            current_entry = [line]
-        elif current_entry:
-            current_entry.append(line)
+                entries.append("\n".join(curr))
+                curr = [line]
+        elif ne:
+            curr = [line]
+        elif curr:
+            curr.append(line)
         else:
-            current_entry = [line]
+            curr = [line]
+    if curr:
+        entries.append("\n".join(curr))
 
-    if current_entry:
-        entries.append("\n".join(current_entry))
-
-    # Merge orphaned entries
-    merged_entries = []
-    for i, entry in enumerate(entries):
-        entry_lines = entry.split("\n")
-        if len(entry_lines) <= 2 and not _has_date(entry) and not _is_role_line(entry):
-            if merged_entries:
-                merged_entries[-1] = merged_entries[-1] + "\n" + entry
+    # Merge orphans
+    merged_e = []
+    for e in entries:
+        el = e.split("\n")
+        if len(el) <= 2 and not has_date(e) and not is_role(e):
+            if merged_e:
+                merged_e[-1] = merged_e[-1] + "\n" + e
                 continue
-        merged_entries.append(entry)
+        merged_e.append(e)
 
-    # Final filter
-    valid_entries = []
-    for entry in merged_entries:
-        entry_clean = _clean_line(entry)
-        if len(entry_clean) < 15:
+    valid = []
+    for e in merged_e:
+        ce = clean(e)
+        if len(ce) < 15:
             continue
-        if any(kw == entry_clean.lower() for kw in section_keywords):
+        if any(kw == ce.lower() for kw in section_kws):
             continue
-        non_bullet = [l for l in entry.split("\n") if not _is_bullet_point(l) and len(l.strip()) > 3]
-        if not non_bullet:
+        nb = [l for l in e.split("\n") if not is_bullet(l) and len(l.strip()) > 3]
+        if not nb:
             continue
-        valid_entries.append(entry)
+        valid.append(e)
 
-    if valid_entries:
-        return valid_entries
+    if valid:
+        return valid
+    fb = [clean(l) for l in raw if len(clean(l)) > 10]
+    return fb if fb else ["Experience not found"]
 
-    fallback = [_clean_line(l) for l in raw_exp_lines if len(_clean_line(l)) > 10]
-    if fallback:
-        return fallback
-
-    return ["Experience not found"]
-
-CERTIFICATIONS_LIST = [
-    "AWS Certified Solutions Architect", "AWS Certified Developer",
-    "AWS Certified SysOps Administrator", "AWS Certified", "Google Cloud Professional",
-    "Google Cloud", "Microsoft Azure", "Azure Administrator", "Azure Fundamentals",
-    "PMP", "Certified Scrum Master", "Scrum Master", "Scrum", "CPA", "CFA",
-    "CISSP", "CompTIA Security+", "CompTIA Network+", "CompTIA A+",
-    "Oracle Certified Professional", "Oracle Certified", "Oracle",
-    "Salesforce Certified Administrator", "Salesforce Certified", "Salesforce",
-    "HubSpot Inbound", "HubSpot", "TensorFlow Developer Certificate",
-    "TensorFlow Developer", "CKA", "CKAD", "CCNA", "CCNP", "ITIL",
-    "Six Sigma Green Belt", "Six Sigma", "PHR", "SHRM-CP",
+# ========== CERTIFICATIONS ==========
+CERTS_LIST = [
+    "AWS Certified Solutions Architect","AWS Certified Developer",
+    "AWS Certified SysOps Administrator","AWS Certified","Google Cloud Professional",
+    "Google Cloud","Microsoft Azure","Azure Administrator","Azure Fundamentals",
+    "PMP","Certified Scrum Master","Scrum Master","Scrum","CPA","CFA",
+    "CISSP","CompTIA Security+","CompTIA Network+","CompTIA A+",
+    "Oracle Certified Professional","Oracle Certified","Oracle",
+    "Salesforce Certified Administrator","Salesforce Certified","Salesforce",
+    "HubSpot Inbound","HubSpot","TensorFlow Developer Certificate",
+    "TensorFlow Developer","CKA","CKAD","CCNA","CCNP","ITIL",
+    "Six Sigma Green Belt","Six Sigma","PHR","SHRM-CP",
+    "AWS Certified DevOps Engineer","AWS Certified Data Analytics",
+    "AWS Certified Machine Learning","AWS Certified Security",
+    "Google Cloud Professional Data Engineer",
+    "Google Cloud Professional Cloud Architect",
+    "Google Cloud Professional Cloud DevOps Engineer",
+    "Azure Solutions Architect","Azure DevOps Engineer",
+    "Azure Data Engineer","Azure AI Engineer",
+    "HashiCorp Certified: Terraform Associate",
+    "HashiCorp Certified: Vault Associate",
+    "HashiCorp Certified: Consul Associate",
+    "Certified Kubernetes Administrator",
+    "Certified Kubernetes Application Developer",
+    "Linux Foundation Certified System Administrator",
+    "Red Hat Certified Engineer","Red Hat Certified System Administrator",
+    "VMware Certified Professional",
+    "Cisco Certified Network Associate","Cisco Certified Network Professional",
+    "Certified Information Systems Security Professional",
+    "Certified Ethical Hacker","Offensive Security Certified Professional",
+    "GIAC Security Essentials","GIAC Certified Incident Handler",
 ]
 
 def extract_certifications(text):
-    found_certifications = []
-    for cert in CERTIFICATIONS_LIST:
-        pattern = r'\b' + re.escape(cert) + r'\b'
-        if re.search(pattern, text, re.IGNORECASE):
-            found_certifications.append(cert)
-    return found_certifications if found_certifications else ["No certifications found"]
+    found = []
+    for cert in CERTS_LIST:
+        if re.search(r'\b' + re.escape(cert) + r'\b', text, re.IGNORECASE):
+            found.append(cert)
+    return found if found else ["No certifications found"]
 
-def _whole_word_match(term, text):
-    pattern = r'\b' + re.escape(term) + r'\b'
-    return bool(re.search(pattern, text, re.IGNORECASE))
-
-def match_candidate(
-    candidate_skills,
-    jd_text,
-    candidate_experience="",
-    candidate_certifications="",
-    job_title="",
-):
+# ========== MATCHING ==========
+def match_candidate(candidate_skills, jd_text, candidate_experience="", candidate_certifications="", job_title=""):
     jd_skills = extract_skills(jd_text)
     jd_skills = [s for s in jd_skills if s != "No skills found"]
 
     matched_skills = []
     missing_skills = []
     for skill in jd_skills:
-        if _whole_word_match(skill, candidate_skills):
+        if _has_match(skill, candidate_skills):
             matched_skills.append(skill)
         else:
             missing_skills.append(skill)
@@ -559,49 +544,38 @@ def match_candidate(
     total_skills = len(jd_skills)
     skills_score = round((len(matched_skills) / total_skills) * 100) if total_skills > 0 else 0
 
-    job_title_words = [
-        w for w in re.split(r"[\s,/-]+", job_title.strip())
-        if len(w) >= 2
-    ]
-    experience_keywords = list(dict.fromkeys(jd_skills + job_title_words))
-    experience_text = candidate_experience if candidate_experience else ""
+    job_title_words = [w for w in re.split(r"[\s,/-]+", job_title.strip()) if len(w) >= 2]
+    exp_keywords = list(dict.fromkeys(jd_skills + job_title_words))
+    exp_text = candidate_experience if candidate_experience else ""
 
-    matched_experience = []
-    for keyword in experience_keywords:
-        if _whole_word_match(keyword, experience_text):
-            matched_experience.append(keyword)
+    matched_exp = []
+    for kw in exp_keywords:
+        if _has_match(kw, exp_text):
+            matched_exp.append(kw)
 
-    total_exp = len(experience_keywords)
-    experience_score = (
-        round((len(matched_experience) / total_exp) * 100) if total_exp > 0 else 0
-    )
+    total_exp = len(exp_keywords)
+    experience_score = round((len(matched_exp) / total_exp) * 100) if total_exp > 0 else 0
 
-    jd_certifications = extract_certifications(jd_text)
-    jd_certifications = [c for c in jd_certifications if c != "No certifications found"]
+    jd_certs = extract_certifications(jd_text)
+    jd_certs = [c for c in jd_certs if c != "No certifications found"]
     certs_text = candidate_certifications if candidate_certifications else ""
 
-    matched_certifications = []
-    for cert in jd_certifications:
-        if _whole_word_match(cert, certs_text):
-            matched_certifications.append(cert)
+    matched_certs = []
+    for cert in jd_certs:
+        if _has_match(cert, certs_text):
+            matched_certs.append(cert)
 
-    total_certs = len(jd_certifications)
-    certifications_score = (
-        round((len(matched_certifications) / total_certs) * 100) if total_certs > 0 else 0
-    )
+    total_certs = len(jd_certs)
+    certifications_score = round((len(matched_certs) / total_certs) * 100) if total_certs > 0 else 0
 
-    score = round(
-        (skills_score * 0.60)
-        + (experience_score * 0.25)
-        + (certifications_score * 0.15)
-    )
+    score = round((skills_score * 0.60) + (experience_score * 0.25) + (certifications_score * 0.15))
 
     return {
         "score": score,
         "matched_skills": matched_skills,
         "missing_skills": missing_skills,
-        "matched_experience": matched_experience,
-        "matched_certifications": matched_certifications,
+        "matched_experience": matched_exp,
+        "matched_certifications": matched_certs,
         "skills_score": skills_score,
         "experience_score": experience_score,
         "certifications_score": certifications_score,
