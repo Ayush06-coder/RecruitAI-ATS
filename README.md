@@ -183,15 +183,16 @@ streamlit run App.py
 
 | Page | Screenshot |
 |---|---|
-| Home | `Screenshots/Home_page.png` |
-| Candidate Database (1) | `Screenshots/Candidate_information_1.png` |
-| Candidate Database (2) | `Screenshots/Candidate_information_2.png` |
-| JD Matching — Input | `Screenshots/JD_Matching_1.png` |
-| JD Matching — Results | `Screenshots/JD_Matching_2.png` |
-| JD Matching — Results (cont.) | `Screenshots/JD_Matching_3.png` |
-| Candidate Ranking Table | `Screenshots/Candidate_Ranking.png` |
-
-> Note: these screenshots are from an earlier single-page version of the app. Consider refreshing them to show the current multi-page flow (public Home/Apply/Track and the logged-in Dashboard/Applications/Admin views).
+| Public Home / Job Board | `Screenshots/Home1.png`  `Screenshots/Home2.png`|
+| Apply Form | `Screenshots/Apply.png` |
+| Track Application | `Screenshots/Track.png` |
+| Login | `Screenshots/Login.png` |
+| Dashboard | `Screenshots/Dashboard.png` |
+| Applications (Ranked) | `Screenshots/Applications.png` |
+| JD Matching | `Screenshots/JD_Matching.png` |
+| Analytics | `Screenshots/Analytics1.png` `Screenshots/Analytics2.png`|
+| Admin Panel | `Screenshots/Admin1.png` `Screenshots/Admin2.png` `Screenshots/Admin3.png`|
+| Candidates Database | `Screenshots/Candidates.png` |
 
 ---
 
@@ -216,8 +217,13 @@ See `requirements.txt` for the full list. Key packages:
 | Branch | Description |
 |---|---|
 | `main` | Current stable version with full workflow |
-| `workflow-redesign` | Merged — public apply flow + company dashboard |
 | `navigation-redesign` | Merged — role-based sidebar with `st.navigation` |
+| `workflow-redesign` | Merged — public apply flow + company dashboard |
+| `job-posting` | Merged — job posting & auto JD generation |
+| `ui-redesign` | Merged — dark cyan/teal UI theme |
+| `enhanced-matching` | Merged — skills + experience + certifications match scoring |
+| `auth-system` | Merged — login, roles, and password management |
+| `fastapi-backend` | Merged — FastAPI backend and endpoints |
 
 ---
 
