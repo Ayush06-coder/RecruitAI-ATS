@@ -19,8 +19,12 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-jobs_response = requests.get(f"{API_URL}/jobs")
-jobs = jobs_response.json().get("jobs", [])
+try:
+    jobs_response = requests.get(f"{API_URL}/jobs")
+    jobs = jobs_response.json().get("jobs", [])
+except Exception:
+    st.error("Could not connect to backend. Make sure FastAPI is running.")
+    st.stop()
 
 if not jobs:
     st.info("No jobs posted yet. Post a job from the Admin panel.")
@@ -32,8 +36,12 @@ selected_job_id = job_options[selected_label]
 
 st.divider()
 
-apps_response = requests.get(f"{API_URL}/jobs/{selected_job_id}/applications")
-applications = apps_response.json().get("applications", [])
+try:
+    apps_response = requests.get(f"{API_URL}/jobs/{selected_job_id}/applications")
+    applications = apps_response.json().get("applications", [])
+except Exception:
+    st.error("Could not load applications. Make sure FastAPI is running.")
+    st.stop()
 
 if not applications:
     st.info("No applications yet for this job.")

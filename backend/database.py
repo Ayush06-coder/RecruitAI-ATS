@@ -482,12 +482,3 @@ def get_applications_by_email(email):
     conn.close()
     return applications
 
-def delete_candidate(candidate_id):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-
-    cursor.execute("DELETE FROM candidates WHERE id = ?", (candidate_id,))
-
-    conn.commit()
-    conn.close()
-    return cursor.rowcount > 0

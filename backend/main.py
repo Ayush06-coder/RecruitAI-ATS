@@ -107,12 +107,12 @@ def generate_job_description(title: str, department: str, experience: str, skill
     skill_list = [s.strip() for s in skills.split(",") if s.strip()]
     cert_list = [c.strip() for c in certifications.split(",") if c.strip()]
 
-    skills_bullet = "\\n".join([f"- {skill}" for skill in skill_list])
+    skills_bullet = "\n".join([f"- {skill}" for skill in skill_list])
 
     certs_section = ""
     if cert_list and cert_list[0]:
-        certs_bullet = "\\n".join([f"- {cert}" for cert in cert_list])
-        certs_section = f"\\n**Required Certifications:**\\n{certs_bullet}\\n"
+        certs_bullet = "\n".join([f"- {cert}" for cert in cert_list])
+        certs_section = f"\n**Required Certifications:**\n{certs_bullet}\n"
 
     return f"""## About the Role
 

@@ -21,3 +21,6 @@ venv/
 # OS
 .DS_Store
 Thumbs.db
+-e 
+# Utility/migration scripts with hardcoded credentials — never commit
+fix_users.py

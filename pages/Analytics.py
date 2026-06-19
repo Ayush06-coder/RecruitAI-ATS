@@ -21,7 +21,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 try:
-    response = requests.get(f"{API_URL}/candidates")
+    response = requests.get(f"{API_URL}/candidates", params={"page_size": 9999})
     data = response.json()
     candidates = data["candidates"]
 except:

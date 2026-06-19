@@ -9,7 +9,6 @@ enforce_access(allow_password_change_page=True)
 render_sidebar()
 
 st.title("🔑 Change Password")
-# ... rest stays the same
 
 if must_change_password():
     st.warning("First login detected. You must change your password to continue.")
