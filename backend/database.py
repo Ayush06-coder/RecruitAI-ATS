@@ -1,6 +1,9 @@
 import sqlite3
 import bcrypt
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(BASE_DIR, "database", "resumes.db")
@@ -49,8 +52,9 @@ def init_db():
     cursor.execute("SELECT id FROM users WHERE username = ?", ("admin",))
     admin_exists = cursor.fetchone()
     if not admin_exists:
+        admin_default_password = os.getenv("ADMIN_DEFAULT_PASSWORD", "RecruitAI@2026")
         admin_password_hash = bcrypt.hashpw(
-            "RecruitAI@2026".encode("utf-8"),
+            admin_default_password.encode("utf-8"),
             bcrypt.gensalt()
         ).decode("utf-8")
         cursor.execute("""
@@ -115,6 +119,14 @@ def save_candidate(name, email, phone, skills, education, experience, certificat
     conn.commit()
     conn.close()
     return True
+
+def get_candidate_by_id(candidate_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM candidates WHERE id = ?", (candidate_id,))
+    candidate = cursor.fetchone()
+    conn.close()
+    return candidate
 
 def get_all_candidates():
     conn = sqlite3.connect(DB_PATH)

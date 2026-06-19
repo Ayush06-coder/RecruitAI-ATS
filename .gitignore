@@ -1,6 +1,23 @@
-.DS_Store
+# Environment variables — never commit these
+.env
+.env.*
+
+# Database
 resumes.db
 database/resumes.db
-venv/
+
+# Uploaded resumes
+resumes/*.pdf
+resumes/*.docx
+
+# Python
 __pycache__/
-.env
+*.py[cod]
+*.pyo
+venv/
+.venv/
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db

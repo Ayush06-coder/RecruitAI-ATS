@@ -19,7 +19,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-col_search, col_filter = st.columns([3, 1])
+col_search, col_filter, col_page_size = st.columns([3, 1, 1])
 
 with col_search:
     search_query = st.text_input(
@@ -38,19 +38,42 @@ with col_filter:
         options=["All"] + skill_options
     )
 
+with col_page_size:
+    page_size = st.selectbox("Per page", options=[10, 20, 50], index=1)
+
 st.divider()
+
+if "candidate_page" not in st.session_state:
+    st.session_state["candidate_page"] = 1
+
+# Reset to page 1 when search or filter changes
+if "last_search" not in st.session_state:
+    st.session_state["last_search"] = ""
+if "last_skill" not in st.session_state:
+    st.session_state["last_skill"] = "All"
+
+if search_query != st.session_state["last_search"] or selected_skill != st.session_state["last_skill"]:
+    st.session_state["candidate_page"] = 1
+    st.session_state["last_search"] = search_query
+    st.session_state["last_skill"] = selected_skill
+
+current_page = st.session_state["candidate_page"]
 
 if search_query:
     response = requests.get(
         f"{API_URL}/candidates",
-        params={"search": search_query}
+        params={"search": search_query, "page": current_page, "page_size": page_size}
     )
 else:
-    response = requests.get(f"{API_URL}/candidates")
+    response = requests.get(
+        f"{API_URL}/candidates",
+        params={"page": current_page, "page_size": page_size}
+    )
 
 if response.status_code == 200:
     data = response.json()
     candidates = data["candidates"]
+    total = data.get("total", len(candidates))
 
     if selected_skill != "All":
         candidates = [
@@ -61,9 +84,10 @@ if response.status_code == 200:
     if not candidates:
         st.warning("No candidates found.")
     else:
+        total_pages = max(1, -(-total // page_size))  # ceiling division
         st.markdown(
             f"<p style='color:#22d3ee; font-weight:600'>"
-            f"{len(candidates)} candidate(s) found</p>",
+            f"{total} candidate(s) total — Page {current_page} of {total_pages}</p>",
             unsafe_allow_html=True
         )
 
@@ -140,5 +164,25 @@ if response.status_code == 200:
                             st.rerun()
                         else:
                             st.error("❌ Failed to delete candidate")
+
+        # Pagination controls
+        st.markdown("<br>", unsafe_allow_html=True)
+        col_prev, col_info, col_next = st.columns([1, 2, 1])
+        with col_prev:
+            if current_page > 1:
+                if st.button("← Previous", use_container_width=True):
+                    st.session_state["candidate_page"] -= 1
+                    st.rerun()
+        with col_info:
+            st.markdown(
+                f"<p style='text-align:center; color:#64748b; margin-top:0.5rem'>"
+                f"Page {current_page} of {total_pages}</p>",
+                unsafe_allow_html=True
+            )
+        with col_next:
+            if current_page < total_pages:
+                if st.button("Next →", use_container_width=True):
+                    st.session_state["candidate_page"] += 1
+                    st.rerun()
 else:
     st.error("Could not connect to backend.")

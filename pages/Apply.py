@@ -105,8 +105,10 @@ else:
 
     st.success("✅ Application submitted successfully!")
 
-    # Tracking link
-    tracking_url = f"http://localhost:8501/Track?email={result.get('email', '')}"
+    # Tracking link — uses FRONTEND_URL env var if set, else localhost
+    import os
+    base_url = os.getenv("FRONTEND_URL", "http://localhost:8501").rstrip("/")
+    tracking_url = f"{base_url}/Track?email={result.get('email', '')}"
 
     st.markdown(f"""
     <div style="background-color: #0f2a2e; padding: 20px; border-radius: 12px; border: 1px solid #1e3a3f; margin-bottom: 20px;">

@@ -12,6 +12,7 @@ from database import (
     init_db,
     save_candidate,
     get_all_candidates,
+    get_candidate_by_id,
     search_candidates,
     delete_candidate,
     init_jobs_db,
@@ -51,9 +52,14 @@ app = FastAPI(
 )
 
 ALLOWED_ORIGINS = ["http://localhost:8501"]
-deployed_frontend = os.getenv("FRONTEND_URL")
+deployed_frontend = os.getenv("FRONTEND_URL", "").strip()
 if deployed_frontend:
     ALLOWED_ORIGINS.append(deployed_frontend)
+    # Also allow without trailing slash variant
+    if deployed_frontend.endswith("/"):
+        ALLOWED_ORIGINS.append(deployed_frontend.rstrip("/"))
+    else:
+        ALLOWED_ORIGINS.append(deployed_frontend + "/")
 
 app.add_middleware(
     CORSMiddleware,
@@ -192,11 +198,16 @@ async def upload_resume(file: UploadFile = File(...)):
     }
 
 @app.get("/candidates")
-def get_candidates(search: str = ""):
+def get_candidates(search: str = "", page: int = 1, page_size: int = 20):
     if search:
         candidates = search_candidates(search)
     else:
         candidates = get_all_candidates()
+
+    total = len(candidates)
+    start = (page - 1) * page_size
+    end = start + page_size
+    candidates = candidates[start:end]
 
     result = []
     for c in candidates:
@@ -211,25 +222,23 @@ def get_candidates(search: str = ""):
             "certifications": c[7] if len(c) > 7 else ""
         })
 
-    return {"candidates": result}
+    return {"candidates": result, "total": total, "page": page, "page_size": page_size}
 
 @app.get("/candidate/{candidate_id}")
 def get_candidate(candidate_id: int):
-    candidates = get_all_candidates()
-
-    for c in candidates:
-        if c[0] == candidate_id:
-            return {
-                "id": c[0],
-                "name": c[1],
-                "email": c[2],
-                "phone": c[3],
-                "skills": c[4],
-                "education": c[5],
-                "experience": c[6]
-            }
-
-    return {"error": "Candidate not found"}
+    candidate = get_candidate_by_id(candidate_id)
+    if not candidate:
+        return {"error": "Candidate not found"}
+    return {
+        "id": candidate[0],
+        "name": candidate[1],
+        "email": candidate[2],
+        "phone": candidate[3],
+        "skills": candidate[4],
+        "education": candidate[5],
+        "experience": candidate[6],
+        "certifications": candidate[7] if len(candidate) > 7 else ""
+    }
 
 @app.post("/match")
 def match_candidates(request: MatchRequest):
@@ -431,8 +440,13 @@ async def apply_to_job(
     }
 
 @app.get("/jobs/{job_id}/applications")
-def get_job_applications(job_id: int):
+def get_job_applications(job_id: int, page: int = 1, page_size: int = 20):
     applications = get_applications_by_job(job_id)
+    total = len(applications)
+    start = (page - 1) * page_size
+    end = start + page_size
+    applications = applications[start:end]
+
     result = []
     for a in applications:
         result.append({
@@ -449,7 +463,7 @@ def get_job_applications(job_id: int):
             "status": a[10],
             "applied_date": a[11]
         })
-    return {"applications": result}
+    return {"applications": result, "total": total, "page": page, "page_size": page_size}
 
 @app.put("/applications/{application_id}")
 def update_status(application_id: int, request: ApplicationStatusRequest):
