@@ -9,7 +9,7 @@ An end-to-end recruitment platform that combines NLP-powered resume parsing, int
 ## 🌐 Live Demo
 
 **Live Application:**  
-https://recruitai-ayush.onrender.com
+https://recruit-ai-owkl.onrender.com
 
 **GitHub Repository:**  
 https://github.com/Ayush06-coder/resume-parser-project
