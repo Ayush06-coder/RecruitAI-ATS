@@ -1,287 +1,484 @@
-# 📄 RecruitAI — Intelligent Resume Parser & Hiring Platform
+# 🚀 RecruitAI ATS
 
-> An AI-powered recruitment platform with role-based access. Candidates apply to jobs without login. Recruiters log in to manage applications, rank candidates, and post jobs with auto-generated JDs.
+### AI-Powered Applicant Tracking System (ATS)
 
----
-
-## 🧠 What This Project Does
-
-Companies receive hundreds of resumes for each job posting. Manual screening is slow and biased. This platform solves that by:
-
-- **Public Job Board** — Candidates view open jobs and apply without any login
-- **AI Resume Parsing** — Automatically extracts name, email, phone, skills, education, experience, and certifications from PDF/DOCX
-- **Smart Matching** — Calculates match scores (skills 60% + experience 25% + certifications 15%) against job requirements
-- **Candidate Ranking** — Ranks applicants with medals and progress bars
-- **Auto JD Generation** — Admin generates professional job descriptions with one click
-- **Application Tracking** — Candidates get a personalised tracking link after applying to check status anytime
-- **Role-Based Access** — Three user types: Candidate (public), Recruiter (user), Admin
+An end-to-end recruitment platform that combines NLP-powered resume parsing, intelligent candidate ranking, job management, application tracking, analytics, and role-based authentication.
 
 ---
 
-## ✨ Features
+## 🌐 Live Demo
 
-| Feature | Description |
-|---|---|
-| 📤 Public Apply | Candidates apply to jobs without login |
-| 🧠 NLP Extraction | spaCy-powered extraction of all candidate details |
-| 🎯 AI Match Scoring | Skills (60%) + Experience (25%) + Certifications (15%) breakdown |
-| 🏆 Ranked Applications | Top 3 get medals, progress bars for all |
-| 💼 Job Posting | Admin posts jobs with auto-generated descriptions |
-| ✨ Auto JD Generation | One-click professional job description generation |
-| 🔗 Application Tracking Link | Personalised URL shown after apply — candidates bookmark it to track status |
-| 🔐 Authentication | Admin vs User roles, bcrypt hashing, account lockout after 5 failed attempts |
-| 📊 Analytics Dashboard | Charts for skills, education, experience distribution across all candidates |
-| 👥 Candidate Database | Search, filter, paginate, and admin-only delete |
-| 🔍 Track Application | Candidates track status via email or direct tracking link |
+**Live Application:**  
+https://recruitai-ayush.onrender.com
+
+**GitHub Repository:**  
+https://github.com/Ayush06-coder/resume-parser-project
+
+---
+
+## 🎯 Project Overview
+
+RecruitAI ATS helps recruiters streamline hiring by automating resume screening, candidate ranking, job posting, and application management.
+
+Instead of manually reviewing hundreds of resumes, recruiters can:
+
+- Parse resumes automatically
+- Match candidates against job requirements
+- Rank applicants instantly
+- Track applications
+- Analyze candidate data
+- Manage hiring workflows from one dashboard
+
+---
+
+## ✨ Key Features
+
+### 👨‍💼 Candidate Features
+
+- Browse open jobs without login
+- Apply directly using resume upload
+- Instant match score calculation
+- Application tracking via personalised tracking link
+- Track status anytime
+
+### 🏢 Recruiter Features
+
+- Dashboard with hiring metrics
+- Candidate database with search & filters
+- View ranked applicants
+- Manage application statuses
+- Real-time JD matching
+- Candidate analytics
+
+### 🔐 Admin Features
+
+- Role-based access control
+- User management
+- Job management
+- Candidate deletion
+- Password enforcement
+- Account security controls
+
+---
+
+## 🧠 AI & NLP Features
+
+- Resume Parsing using spaCy NLP
+- Skill Extraction
+- Education Extraction
+- Experience Extraction
+- Certification Extraction
+- JD Matching Engine
+- Candidate Ranking System
+
+### Match Score Formula
+
+```text
+Skills         = 60%
+Experience     = 25%
+Certifications = 15%
+```
+
+---
+
+## 🏗️ System Architecture
+
+```text
+Candidate
+    │
+    ▼
+Streamlit Frontend
+    │
+    ▼
+FastAPI Backend
+    │
+    ├── Resume Parsing Engine
+    ├── JD Matching Engine
+    ├── Authentication System
+    ├── Job Management
+    └── Analytics Engine
+    │
+    ▼
+SQLite Database
+    │
+    ▼
+Recruiter Dashboard
+```
 
 ---
 
 ## 🛠️ Tech Stack
 
 | Layer | Technology |
-|---|---|
-| Frontend | Streamlit (Multi-page + `st.navigation`) |
-| Backend | FastAPI + Uvicorn |
-| NLP | spaCy (`en_core_web_lg`) + Regex |
+|---------|---------|
+| Frontend | Streamlit |
+| Backend | FastAPI |
+| API Server | Uvicorn |
+| NLP | spaCy + Regex |
 | Database | SQLite |
-| Auth | Bcrypt password hashing |
-| Styling | Custom CSS (Dark cyan/teal theme) |
-| Containerisation | Docker |
+| Authentication | bcrypt |
+| Analytics | Pandas |
+| Containerization | Docker |
+| Deployment | Render |
 | Language | Python 3.11 |
 
 ---
 
-## 📁 Project Structure
+## 📂 Project Structure
 
-```
+```text
 resume-parser-project/
-├── App.py                      ← Navigation controller (role-based page routing)
-├── auth.py                     ← Login/logout, roles, password management, lockout
-├── styles.py                   ← Shared dark CSS (cyan/teal theme, #030c10 background)
-├── config.py                   ← API_URL from environment variable
-├── requirements.txt            ← All pinned dependencies
-├── Dockerfile                  ← Docker container (Python 3.11-slim, runs both services)
-├── start.sh                    ← Starts FastAPI (background) + Streamlit (foreground)
-├── Procfile                    ← For platforms that use process-based deployment
+│
+├── App.py
+├── auth.py
+├── config.py
+├── styles.py
+├── Dockerfile
+├── start.sh
+├── requirements.txt
 │
 ├── backend/
-│   ├── main.py                 ← FastAPI endpoints (upload, match, jobs, applications, generate-jd)
-│   ├── parser.py               ← PDF/DOCX text extraction (pdfplumber + python-docx)
-│   ├── extractor.py            ← NLP: name, email, phone, skills, education, experience, certifications
-│   └── database.py             ← SQLite: candidates, jobs, applications, users tables
-│
-├── database/
-│   └── resumes.db              ← SQLite database (created on first run, gitignored)
+│   ├── main.py
+│   ├── parser.py
+│   ├── extractor.py
+│   └── database.py
 │
 ├── pages/
-│   ├── Home.py                 ← Public landing page with job listings
-│   ├── Apply.py                ← Candidate application form + tracking link after submit
-│   ├── Track.py                ← Track application by email or URL param (no login)
-│   ├── Login.py                ← Company login page
-│   ├── Dashboard.py            ← Company overview: jobs, candidates, total applications
-│   ├── Applications.py         ← View applications per job, ranked by match score
-│   ├── JD_Matching.py          ← Match all candidates against a pasted JD in real-time
-│   ├── Analytics.py            ← Charts: top skills, education breakdown, experience roles
-│   ├── Admin.py                ← Admin only: users, jobs, applications management
-│   ├── Candidates.py           ← View all candidates (search, filter, paginate, admin delete)
-│   └── Change_Password.py      ← Password change (required first login + optional anytime)
+│   ├── Home.py
+│   ├── Apply.py
+│   ├── Track.py
+│   ├── Login.py
+│   ├── Dashboard.py
+│   ├── Applications.py
+│   ├── JD_Matching.py
+│   ├── Analytics.py
+│   ├── Admin.py
+│   ├── Candidates.py
+│   └── Change_Password.py
 │
-└── resumes/                    ← Uploaded resume files (gitignored except sample)
+├── database/
+│   └── resumes.db
+│
+└── resumes/
 ```
 
 ---
 
-## 🔄 Workflow
+## 🔄 Application Workflow
 
-### Candidate Flow (No Login)
-1. Visits public landing page → sees open jobs with required skills
-2. Clicks "Apply" on a job → fills name, email, phone + uploads resume (PDF/DOCX)
-3. Gets instant match score with skills, experience, and certifications breakdown
-4. Gets a personalised tracking link — bookmarks it to check status anytime
-5. Can also go to Track page and enter their email to see all applications
+### Candidate Flow
 
-### Company Flow (Login Required)
-1. Admin/User logs in → forced to change password on first login
-2. Dashboard shows metrics: Total Jobs, Open Positions, Candidates, Total Applications
-3. Applications page → select job → see ranked applicants (🥇🥈🥉)
-4. Can shortlist, schedule interview, or reject candidates
-5. JD Matching → paste any JD → all candidates ranked in real-time
-6. Analytics → visual breakdown of all candidates (skills, education, experience)
-7. Admin can post jobs (with Auto Generate JD), manage users, delete candidates
+1. Browse available jobs
+2. Select a job
+3. Upload resume
+4. Resume is parsed automatically
+5. Match score is calculated
+6. Application is submitted
+7. Tracking link is generated
+8. Candidate tracks status anytime
 
----
+### Recruiter Flow
 
-## ▶️ Running Locally
-
-### Prerequisites
-```bash
-pip install -r requirements.txt
-```
-> spaCy model is installed automatically via `requirements.txt` (wheel URL included)
-
-Create a `.env` file in the project root:
-```env
-API_URL=http://localhost:8000
-```
-
-### Start the app
-Open two separate terminals from the project root.
-
-**Terminal 1 — FastAPI Backend:**
-```bash
-uvicorn backend.main:app --reload --port 8000
-```
-
-**Terminal 2 — Streamlit Frontend:**
-```bash
-streamlit run App.py
-```
-
-| Service | URL |
-|---|---|
-| Streamlit App | http://localhost:8501 |
-| FastAPI Docs | http://localhost:8000/docs |
+1. Login
+2. View Dashboard
+3. Review applications
+4. View ranked candidates
+5. Shortlist or reject candidates
+6. Monitor analytics
+7. Manage jobs and users
 
 ---
 
-## 🐳 Running with Docker
+## 📊 Core Modules
 
-```bash
-# Build the image
-docker build -t recruitai .
+### Resume Parser
 
-# Run the container
-docker run -p 8000:8000 -p 8501:8501 \
-  -e API_URL=http://localhost:8000 \
-  -e FRONTEND_URL=http://localhost:8501 \
-  recruitai
-```
+Extracts:
 
-Then open http://localhost:8501
+- Name
+- Email
+- Phone Number
+- Skills
+- Education
+- Experience
+- Certifications
 
----
+### Candidate Database
 
-## 🌐 Deploying on Render
+- Search
+- Filter
+- Pagination
+- Delete (Admin Only)
 
-See the full step-by-step deploy guide in the [Deploy Guide](#) section below or follow these steps:
+### JD Matching
 
-1. Push your code to GitHub
-2. Go to [render.com](https://render.com) → New → Web Service
-3. Connect your GitHub repo
-4. Set **Environment** to `Docker`
-5. Set these environment variables in Render:
-   ```
-   API_URL=https://your-app-name.onrender.com
-   FRONTEND_URL=https://your-app-name.onrender.com
-   ADMIN_DEFAULT_PASSWORD=YourSecurePassword
-   ```
-6. Deploy — Render builds the Docker image and starts your app
+- Skill Matching
+- Experience Matching
+- Certification Matching
+- Candidate Ranking
+
+### Analytics
+
+- Skills Distribution
+- Education Breakdown
+- Experience Analysis
+- Candidate Insights
 
 ---
 
 ## 🔌 API Endpoints
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/` | Health check |
-| `POST` | `/upload` | Upload resume, parse and save to candidates |
-| `GET` | `/candidates` | Fetch candidates (supports `?search=`, `?page=`, `?page_size=`) |
-| `GET` | `/candidate/{id}` | Fetch a single candidate by ID |
-| `DELETE` | `/candidates/{id}` | Delete candidate (admin) |
-| `POST` | `/match` | Match all candidates against a JD |
-| `POST` | `/generate-jd` | Auto-generate a professional job description |
-| `POST` | `/jobs` | Post new job |
-| `GET` | `/jobs` | List all jobs |
-| `GET` | `/jobs/{id}` | Get a single job by ID |
-| `PUT` | `/jobs/{id}` | Update job status (open/closed) |
-| `DELETE` | `/jobs/{id}` | Delete job + all its applications |
-| `POST` | `/jobs/{id}/apply` | Apply to job with resume upload |
-| `GET` | `/jobs/{id}/applications` | Get all applications for a job |
-| `PUT` | `/applications/{id}` | Update application status |
-| `GET` | `/track/{email}` | Track all applications by candidate email |
+| Method | Endpoint |
+|----------|----------|
+| GET | / |
+| POST | /upload |
+| GET | /candidates |
+| GET | /candidate/{id} |
+| DELETE | /candidates/{id} |
+| POST | /match |
+| POST | /jobs |
+| GET | /jobs |
+| PUT | /jobs/{id} |
+| DELETE | /jobs/{id} |
+| POST | /jobs/{id}/apply |
+| GET | /jobs/{id}/applications |
+| PUT | /applications/{id} |
+| GET | /track/{email} |
 
 ---
 
-## 🔐 Default Credentials
+## ▶️ Running Locally
 
-| Role | Username | Password | Notes |
-|---|---|---|---|
-| Admin | `admin` | `RecruitAI@2026` | Must change on first login. Set via `ADMIN_DEFAULT_PASSWORD` env var |
-| User | Created by admin | `ChangeMe@123` | Must change on first login |
+### Install Dependencies
 
-> **Security:** Accounts are locked for 15 minutes after 5 failed login attempts.
+```bash
+pip install -r requirements.txt
+```
 
----
+### Create .env
 
-## 🎨 UI Theme
+```env
+API_URL=http://localhost:8000
+```
 
-- Dark background: `#030c10`
-- Sidebar: `#050f15`
-- Primary accent: Cyan/Teal (`#22d3ee`, `#0891b2`)
-- Cards: Dark surface `#061a20` with subtle borders
-- Progress bars: Gradient cyan
-- Status badges: Color-coded (green = shortlisted, yellow = interview, red = rejected, purple = applied)
+### Start Backend
 
----
+```bash
+uvicorn backend.main:app --reload --port 8000
+```
 
-## 📸 Screenshots
+### Start Frontend
 
-| Page | Screenshot |
-|------|------------|
-| Public Home / Job Board | ![Home1](Screenshots/Home1.png) <br> ![Home2](Screenshots/Home2.png) |
-| Apply Form | ![Apply](Screenshots/Apply.png) |
-| Track Application | ![Track](Screenshots/Track.png) |
-| Login | ![Login](Screenshots/Login.png) |
-| Dashboard | ![Dashboard](Screenshots/Dashboard.png) |
-| Applications (Ranked) | ![Applications](Screenshots/Applications.png) |
-| JD Matching | ![JD Matching](Screenshots/JD_Matching.png) |
-| Analytics | ![Analytics1](Screenshots/Analytics1.png) <br> ![Analytics2](Screenshots/Analytics2.png) |
-| Admin Panel | ![Admin1](Screenshots/Admin1.png) <br> ![Admin2](Screenshots/Admin2.png) <br> ![Admin3](Screenshots/Admin3.png) |
-| Candidates Database | ![Candidates](Screenshots/Candidates.png) |
+```bash
+streamlit run App.py
+```
 
----
+### Access
 
-## 📦 Key Dependencies
+Frontend:
 
-See `requirements.txt` for the full pinned list. Key packages:
+```text
+http://localhost:8501
+```
 
-- `streamlit` — Frontend UI
-- `fastapi` + `uvicorn` — Backend API
-- `spacy` + `en_core_web_lg` — NLP processing
-- `bcrypt` — Password hashing
-- `pdfplumber` — PDF text extraction
-- `python-docx` — DOCX text extraction
-- `pandas` — Data tables and analytics
-- `requests` — Frontend → backend HTTP calls
-- `python-dotenv` — Environment variable loading
+Backend Docs:
+
+```text
+http://localhost:8000/docs
+```
 
 ---
 
-## 🌿 Git Branches
+## 🐳 Docker Deployment
 
-| Branch | Description |
-|---|---|
-| `main` | Current stable version with full workflow |
-| `navigation-redesign` | Merged — role-based sidebar with `st.navigation` |
-| `workflow-redesign` | Merged — public apply flow + company dashboard |
-| `job-posting` | Merged — job posting & auto JD generation |
-| `ui-redesign` | Merged — dark cyan/teal UI theme |
-| `enhanced-matching` | Merged — skills + experience + certifications match scoring |
-| `auth-system` | Merged — login, roles, and password management |
-| `fastapi-backend` | Merged — FastAPI backend and endpoints |
+Build:
+
+```bash
+docker build -t recruitai .
+```
+
+Run:
+
+```bash
+docker run -p 8000:8000 -p 8501:8501 recruitai
+```
+
+---
+
+## ☁️ Render Deployment
+
+### Environment Variables
+
+```env
+FRONTEND_URL=https://your-app-name.onrender.com
+ADMIN_DEFAULT_PASSWORD=YourSecurePassword
+```
+
+### Deployment Steps
+
+1. Push code to GitHub
+2. Create Render Web Service
+3. Select Docker Environment
+4. Add Environment Variables
+5. Deploy
+
+---
+
+## 🔐 Authentication
+
+### Admin
+
+Username:
+
+```text
+admin
+```
+
+Password:
+
+```text
+Set using ADMIN_DEFAULT_PASSWORD
+```
+
+### Security Features
+
+- Password Hashing (bcrypt)
+- Account Lockout
+- First Login Password Change
+- Role-Based Access Control
+
+---
+
+## 🎯 Key Achievements
+
+- Built a full-stack Applicant Tracking System
+- Implemented NLP-based resume parsing
+- Developed a weighted JD matching engine
+- Created role-based authentication system
+- Built recruiter analytics dashboard
+- Dockerized the complete application
+- Successfully deployed to Render Cloud
+
+---
+
+## 📸 Application Screenshots
+
+### 🏠 Home Page
+
+![Home](Screenshots/Home1.png)
+
+---
+
+### 🏠 Home Page (Public View)
+
+![Home2](Screenshots/Home2.png)
+
+---
+
+### 🔐 Login Page
+
+![Login](Screenshots/Login.png)
+
+---
+
+### 📊 Recruiter Dashboard
+
+![Dashboard](Screenshots/Dashboard.png)
+
+---
+
+### 👥 Candidate Database
+
+![Candidates](Screenshots/Candidates.png)
+
+---
+
+### 📄 Applications Management
+
+![Applications](Screenshots/Applications.png)
+
+---
+
+### 🎯 JD Matching
+
+![JD Matching](Screenshots/JD_Matching.png)
+
+---
+
+### 📈 Analytics Dashboard
+
+![Analytics](Screenshots/Analytics1.png)
+
+---
+
+### 📈 Analytics Insights
+
+![Analytics2](Screenshots/Analytics2.png)
+
+---
+
+### 🔐 Admin Panel
+
+![Admin](Screenshots/Admin1.png)
+
+---
+
+### 🔐 Admin User Management
+
+![Admin2](Screenshots/Admin2.png)
+
+---
+
+### 🔐 Admin Job Management
+
+![Admin3](Screenshots/Admin3.png)
+
+---
+
+### 📝 Job Application Portal
+
+![Apply](Screenshots/Apply.png)
+
+---
+
+### 📍 Application Tracking
+
+![Track](Screenshots/Track.png)
+
+---
+
+## 📄 Resume Highlights
+
+This project demonstrates:
+
+- Full-Stack Development
+- REST API Design
+- Natural Language Processing
+- Authentication & Authorization
+- Database Design
+- Cloud Deployment
+- Docker Containerization
+- Data Analytics
 
 ---
 
 ## 👨‍💻 Author
 
-**Ayush Sawhney**
-B.Tech Computer Science Engineering — Amity University, Noida
-GitHub: [@Ayush06-coder](https://github.com/Ayush06-coder)
+### Ayush Sawhney
+
+B.Tech Computer Science Engineering  
+Amity University, Noida
+
+GitHub:
+https://github.com/Ayush06-coder
+
+LinkedIn:
+https://www.linkedin.com/in/ayush-sawhney-b8476a34b
 
 ---
 
 ## 📌 Project Status
 
-🟢 Active Development — Internship Project
+🟢 Active Development
 
-Built with Python · FastAPI · Streamlit · spaCy · SQLite · Bcrypt · Docker
+Built with ❤️ using Python, FastAPI, Streamlit, spaCy, SQLite, Docker, and Render.
