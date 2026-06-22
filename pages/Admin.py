@@ -202,19 +202,22 @@ with tab2:
     st.markdown('<div class="card-title" style="font-size:1.1rem">📋 All Job Postings</div>', unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
 
-    jobs_response = requests.get(f"{API_URL}/jobs")
-    if jobs_response.status_code == 200:
+    try:
+        jobs_response = requests.get(f"{API_URL}/jobs")
         jobs = jobs_response.json().get("jobs", [])
+    except Exception:
+        st.error("Could not connect to backend. Make sure FastAPI is running.")
+        st.stop()
 
-        if not jobs:
-            st.info("No jobs posted yet.")
-        else:
-            for job in jobs:
-                status_color = "badge-green" if job["status"] == "open" else "badge-red"
-                status_label = "🟢 Open" if job["status"] == "open" else "🔴 Closed"
+    if not jobs:
+        st.info("No jobs posted yet.")
+    else:
+        for job in jobs:
+            status_color = "badge-green" if job["status"] == "open" else "badge-red"
+            status_label = "🟢 Open" if job["status"] == "open" else "🔴 Closed"
 
-                st.markdown(f"""
-                <div class="card">
+            st.markdown(f"""
+            <div class="card">
                     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap">
                         <div>
                             <div style="font-size:1.1rem; font-weight:700; color:#e2e8f0">
@@ -232,15 +235,15 @@ with tab2:
                     <div style="margin-top:0.8rem; color:#a0aec0; font-size:0.85rem">
                         {clean_preview(job['description'])}
                     </div>
-                </div>
-                """, unsafe_allow_html=True)
+            </div>
+            """, unsafe_allow_html=True)
 
-                with st.expander("View full job description", expanded=False):
+            with st.expander("View full job description", expanded=False):
                     st.markdown(job["description"])
 
-                col_open, col_close, col_delete = st.columns([1, 1, 4])
+            col_open, col_close, col_delete = st.columns([1, 1, 4])
 
-                with col_open:
+            with col_open:
                     if st.button("🟢 Open", key=f"open_{job['id']}"):
                         requests.put(
                             f"{API_URL}/jobs/{job['id']}",
@@ -248,7 +251,7 @@ with tab2:
                         )
                         st.rerun()
 
-                with col_close:
+            with col_close:
                     if st.button("🔴 Close", key=f"close_{job['id']}"):
                         requests.put(
                             f"{API_URL}/jobs/{job['id']}",
@@ -256,12 +259,12 @@ with tab2:
                         )
                         st.rerun()
 
-                with col_delete:
+            with col_delete:
                     if st.button("🗑️ Delete Job", key=f"delete_{job['id']}"):
                         requests.delete(f"{API_URL}/jobs/{job['id']}")
                         st.rerun()
 
-                st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
 
 # ============ TAB 3 — APPLICATIONS ============
 
@@ -271,33 +274,36 @@ with tab3:
     st.markdown('<div class="card-title" style="font-size:1.1rem">📋 View Applications by Job</div>', unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
 
-    jobs_response = requests.get(f"{API_URL}/jobs")
-    if jobs_response.status_code == 200:
+    try:
+        jobs_response = requests.get(f"{API_URL}/jobs")
         jobs = jobs_response.json().get("jobs", [])
+    except Exception:
+        st.error("Could not connect to backend. Make sure FastAPI is running.")
+        st.stop()
 
-        if not jobs:
-            st.info("No jobs posted yet.")
-        else:
-            job_options = {
-                f"#{j['id']} — {j['title']} ({j['status']})": j["id"]
-                for j in jobs
-            }
-            selected_job_label = st.selectbox(
-                "Select Job",
-                options=list(job_options.keys())
-            )
-            selected_job_id = job_options[selected_job_label]
+    if not jobs:
+        st.info("No jobs posted yet.")
+    else:
+        job_options = {
+            f"#{j['id']} — {j['title']} ({j['status']})": j["id"]
+            for j in jobs
+        }
+        selected_job_label = st.selectbox(
+            "Select Job",
+            options=list(job_options.keys())
+        )
+        selected_job_id = job_options[selected_job_label]
 
-            apps_response = requests.get(
-                f"{API_URL}/jobs/{selected_job_id}/applications"
-            )
+        apps_response = requests.get(
+            f"{API_URL}/jobs/{selected_job_id}/applications"
+        )
 
-            if apps_response.status_code == 200:
-                applications = apps_response.json().get("applications", [])
+        if apps_response.status_code == 200:
+            applications = apps_response.json().get("applications", [])
 
-                if not applications:
+            if not applications:
                     st.info("No applications yet for this job.")
-                else:
+            else:
                     st.markdown(
                         f"<p style='color:#22d3ee; font-weight:600'>"
                         f"{len(applications)} application(s) received</p>",

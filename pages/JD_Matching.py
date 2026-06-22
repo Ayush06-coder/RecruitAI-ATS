@@ -29,10 +29,14 @@ with col2:
 
 if jd_text:
     with st.spinner("Matching candidates..."):
-        response = requests.post(
-            f"{API_URL}/match",
-            json={"jd_text": jd_text, "job_title": job_title}
-        )
+        try:
+            response = requests.post(
+                f"{API_URL}/match",
+                json={"jd_text": jd_text, "job_title": job_title}
+            )
+        except Exception:
+            st.error("Could not connect to backend. Make sure FastAPI is running.")
+            st.stop()
 
     if response.status_code == 200:
         data = response.json()

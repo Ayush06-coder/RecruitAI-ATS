@@ -59,16 +59,20 @@ if search_query != st.session_state["last_search"] or selected_skill != st.sessi
 
 current_page = st.session_state["candidate_page"]
 
-if search_query:
-    response = requests.get(
-        f"{API_URL}/candidates",
-        params={"search": search_query, "page": current_page, "page_size": page_size}
-    )
-else:
-    response = requests.get(
-        f"{API_URL}/candidates",
-        params={"page": current_page, "page_size": page_size}
-    )
+try:
+    if search_query:
+        response = requests.get(
+            f"{API_URL}/candidates",
+            params={"search": search_query, "page": current_page, "page_size": page_size}
+        )
+    else:
+        response = requests.get(
+            f"{API_URL}/candidates",
+            params={"page": current_page, "page_size": page_size}
+        )
+except Exception:
+    st.error("Could not connect to backend. Make sure FastAPI is running.")
+    st.stop()
 
 if response.status_code == 200:
     data = response.json()

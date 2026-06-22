@@ -1,9 +1,9 @@
 #!/bin/sh
-# Start FastAPI backend in background
-uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000} &
+# FastAPI runs on a fixed internal port (not the Render-assigned $PORT)
+uvicorn backend.main:app --host 0.0.0.0 --port 8000 &
 
-# Start Streamlit frontend in foreground
+# Streamlit gets $PORT from Render (the port Render routes public traffic to)
 streamlit run App.py \
-  --server.port ${STREAMLIT_PORT:-8501} \
+  --server.port ${PORT:-8501} \
   --server.address 0.0.0.0 \
   --server.headless true
